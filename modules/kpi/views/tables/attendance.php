@@ -87,11 +87,21 @@ if ($work_shift_detail_exists) {
     }
 }
 
-// Join check_in_out to get check-in time (type_check = 1)
+// Join check_in_out to get check-in time (type_check = 1) - only the first/earliest check-in
 if ($check_in_out_exists) {
-    // Match by staff_id, date (date part only), and type_check = 1
-    $checkin_join_condition = 'cio.staff_id = s.staffid AND DATE(cio.date) = "' . $CI->db->escape_str($lookup_date) . '" AND cio.type_check = 1';
-    $join[] = 'LEFT JOIN ' . db_prefix() . 'check_in_out cio ON ' . $checkin_join_condition;
+    // Use a derived table to get only the earliest check-in time for each staff on the date
+    // This handles cases where staff has multiple check-ins on the same day
+    $checkin_join_condition = 'cio_first.staff_id = s.staffid';
+    $join[] = 'LEFT JOIN (
+        SELECT staff_id, MIN(date) as first_checkin_date
+        FROM ' . db_prefix() . 'check_in_out 
+        WHERE DATE(date) = "' . $CI->db->escape_str($lookup_date) . '" 
+        AND type_check = 1
+        GROUP BY staff_id
+    ) cio_min ON cio_min.staff_id = s.staffid';
+    $join[] = 'LEFT JOIN ' . db_prefix() . 'check_in_out cio ON cio.staff_id = cio_min.staff_id 
+        AND cio.date = cio_min.first_checkin_date 
+        AND cio.type_check = 1';
 }
 
 // Build where clause - start with active staff filter
@@ -231,9 +241,51 @@ foreach ($rResult as $aRow) {
             
             $row[] = $check_in_time;
 
-            // Points
-            $points = !empty($aRow['points']) ? number_format($aRow['points'], 0) : '0';
-            $row[] = $points;
+            // Points - calculate dynamically based on shift time and check-in time
+            $points = 0;
+            $date_for_points = '';
+            
+            // Determine the date to use for points calculation (must be Y-m-d format)
+            if (!empty($aRow['attendance_date'])) {
+                $date_for_points = is_numeric(strtotime($aRow['attendance_date'])) ? date('Y-m-d', strtotime($aRow['attendance_date'])) : $aRow['attendance_date'];
+            } elseif (!empty($filters['date'])) {
+                $date_for_points = is_numeric(strtotime($filters['date'])) ? date('Y-m-d', strtotime($filters['date'])) : $filters['date'];
+            } else {
+                $date_for_points = date('Y-m-d');
+            }
+            
+            // Calculate points based on shift and check-in status
+            if ($shift_time == 'NS') {
+                // No shift assigned = 0 points (can't calculate without a shift)
+                $points = 0;
+            } elseif ($shift_time != '-' && $check_in_time != '-' && $check_in_time != 'NS') {
+                // Has shift and check-in = calculate points based on timing
+                if (method_exists($CI->kpi_model, 'calculate_points')) {
+                    $points = $CI->kpi_model->calculate_points($shift_time, $check_in_time, $date_for_points);
+                }
+            } elseif ($shift_time != '-' && ($check_in_time == '-' || $check_in_time == 'NS')) {
+                // Has shift but no check-in = absent = -6 points (only if date is valid)
+                if (method_exists($CI->kpi_model, 'calculate_points')) {
+                    $points = $CI->kpi_model->calculate_points($shift_time, '-', $date_for_points);
+                } else {
+                    // Fallback: only apply -6 if date is 2026 or later and not future
+                    $date_year = (int)date('Y', strtotime($date_for_points));
+                    $current_date = date('Y-m-d');
+                    if ($date_year >= 2026 && $date_for_points <= $current_date) {
+                        $points = -6;
+                    }
+                }
+            } else {
+                // No shift or invalid data = 0 points
+                $points = 0;
+            }
+            
+            // Format points display
+            $points_display = number_format($points, 0);
+            if ($points > 0) {
+                $points_display = '+' . $points_display;
+            }
+            $row[] = $points_display;
 
             // Status - use model method to format badge
             $status = !empty($aRow['status']) ? $aRow['status'] : '-';
@@ -277,7 +329,50 @@ foreach ($rResult as $aRow) {
             }
             $row[] = $check_in_time;
             
-            $row[] = '-';
+            // Points - calculate dynamically
+            $points = 0;
+            $date_for_points = '';
+            
+            // Determine the date to use for points calculation (must be Y-m-d format)
+            if (!empty($filters['date'])) {
+                $date_for_points = is_numeric(strtotime($filters['date'])) ? date('Y-m-d', strtotime($filters['date'])) : $filters['date'];
+            } else {
+                $date_for_points = date('Y-m-d');
+            }
+            
+            // Calculate points based on shift and check-in status
+            if ($shift_time == 'NS') {
+                // No shift assigned = 0 points (can't calculate without a shift)
+                $points = 0;
+            } elseif ($shift_time != '-' && $check_in_time != '-' && $check_in_time != 'NS') {
+                // Has shift and check-in = calculate points based on timing
+                if (method_exists($CI->kpi_model, 'calculate_points')) {
+                    $points = $CI->kpi_model->calculate_points($shift_time, $check_in_time, $date_for_points);
+                }
+            } elseif ($shift_time != '-' && ($check_in_time == '-' || $check_in_time == 'NS')) {
+                // Has shift but no check-in = absent = -6 points (only if date is valid)
+                if (method_exists($CI->kpi_model, 'calculate_points')) {
+                    $points = $CI->kpi_model->calculate_points($shift_time, '-', $date_for_points);
+                } else {
+                    // Fallback: only apply -6 if date is 2026 or later and not future
+                    $date_year = (int)date('Y', strtotime($date_for_points));
+                    $current_date = date('Y-m-d');
+                    if ($date_year >= 2026 && $date_for_points <= $current_date) {
+                        $points = -6;
+                    }
+                }
+            } else {
+                // No shift or invalid data = 0 points
+                $points = 0;
+            }
+            
+            // Format points display
+            $points_display = number_format($points, 0);
+            if ($points > 0) {
+                $points_display = '+' . $points_display;
+            }
+            $row[] = $points_display;
+            
             $row[] = '-';
         }
 

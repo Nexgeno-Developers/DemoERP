@@ -144,20 +144,46 @@ class Kpi_model extends App_Model
 
     /**
      * Calculate points based on shift time and check-in time
-     * @param string $shift_time_start Time in HH:MM format (e.g., "09:00")
-     * @param string $check_in_time Time in HH:MM format or datetime (e.g., "09:05" or "2026-01-08 09:05:00")
+     * Based on new rules:
+     * - 09:45 – 10:00: +5 points (Early buffer)
+     * - 10:00 – 10:05: +4 points (On-time grace period)
+     * - 10:05 – 10:15: +2 points (Minor delay)
+     * - 10:15 – 10:29: 0 points (Late but acceptable)
+     * - 10:30 – 10:59: -2 points (Moderately late)
+     * - After 11:00: -4 points (Very late)
+     * - No Check-in / Absent: -6 points
+     * 
+     * @param string $shift_time_start Time in HH:MM format (e.g., "10:00")
+     * @param string $check_in_time Time in HH:MM format or datetime (e.g., "10:05" or "2026-01-08 10:05:00")
+     * @param string $date Date in Y-m-d format (for validation)
      * @return int Points calculated
      */
-    public function calculate_points($shift_time_start, $check_in_time)
+    public function calculate_points($shift_time_start, $check_in_time, $date = null)
     {
-        // If no check-in, return -6 points (absent)
-        if (empty($check_in_time) || $check_in_time == '-') {
-            return -6;
+        // Validate date - only calculate points for 2026 onwards
+        if (!empty($date)) {
+            $date_year = (int)date('Y', strtotime($date));
+            $current_date = date('Y-m-d');
+            
+            // Don't calculate points for years before 2026
+            if ($date_year < 2026) {
+                return 0;
+            }
+            
+            // Don't calculate points for future dates
+            if ($date > $current_date) {
+                return 0;
+            }
         }
 
-        // If no shift time, return 0 (can't calculate)
-        if (empty($shift_time_start) || $shift_time_start == '-') {
+        // If no shift time or shift is "NS" (No Shift), return 0 (can't calculate points without a shift)
+        if (empty($shift_time_start) || $shift_time_start == '-' || $shift_time_start == 'NS') {
             return 0;
+        }
+
+        // If no check-in, return -6 points (absent) - but only if there's a shift assigned
+        if (empty($check_in_time) || $check_in_time == '-' || $check_in_time == 'NS') {
+            return -6;
         }
 
         // Extract time from datetime if needed
@@ -169,35 +195,35 @@ class Kpi_model extends App_Model
         $shift_timestamp = strtotime($shift_time_start);
         $checkin_timestamp = strtotime($check_in_time);
 
-        // Calculate difference in minutes
+        // Calculate difference in minutes from shift start time
         $diff_minutes = round(($checkin_timestamp - $shift_timestamp) / 60);
 
-        // Calculate points based on rules
-        // T - 15 min to T → +5 points
+        // Calculate points based on new rules
+        // 09:45 – 10:00 (T - 15 min to T): +5 points
         if ($diff_minutes >= -15 && $diff_minutes < 0) {
             return 5;
         }
-        // T to T + 5 min → +4 points
+        // 10:00 – 10:05 (T to T + 5 min): +4 points
         elseif ($diff_minutes >= 0 && $diff_minutes <= 5) {
             return 4;
         }
-        // T + 5 to T + 15 min → +2 points
+        // 10:05 – 10:15 (T + 5 to T + 15 min): +2 points
         elseif ($diff_minutes > 5 && $diff_minutes <= 15) {
             return 2;
         }
-        // T + 15 to T + 29 min → 0 points
+        // 10:15 – 10:29 (T + 15 to T + 29 min): 0 points
         elseif ($diff_minutes > 15 && $diff_minutes <= 29) {
             return 0;
         }
-        // T + 30 to T + 59 min → -2 points
+        // 10:30 – 10:59 (T + 30 to T + 59 min): -2 points
         elseif ($diff_minutes >= 30 && $diff_minutes <= 59) {
             return -2;
         }
-        // T + 60 min or more → -4 points
+        // After 11:00 (T + 60 min or more): -4 points
         elseif ($diff_minutes >= 60) {
             return -4;
         }
-        // Before T - 15 min (very early) → +5 points (same as on-time)
+        // Before 09:45 (very early, more than 15 min before): +5 points (same as early buffer)
         else {
             return 5;
         }
@@ -364,7 +390,7 @@ class Kpi_model extends App_Model
     {
         // Extract start time from shift_time (format: "HH:MM - HH:MM" or just "HH:MM")
         $shift_start = null;
-        if (!empty($shift_time) && $shift_time != '-') {
+        if (!empty($shift_time) && $shift_time != '-' && $shift_time != 'NS') {
             if (strpos($shift_time, ' - ') !== false) {
                 $parts = explode(' - ', $shift_time);
                 $shift_start = trim($parts[0]);
@@ -373,11 +399,14 @@ class Kpi_model extends App_Model
             }
         }
 
-        // Calculate points
-        $points = $this->calculate_points($shift_start, $check_in_time);
+        // Calculate points with date validation
+        $points = $this->calculate_points($shift_start, $check_in_time, $date);
 
-        // Store daily points
-        $this->store_daily_points($staff_id, $date, $points, $shift_time, $check_in_time);
+        // Only store points if date is valid (2026 onwards and not future)
+        if ($points != 0 || ($points == 0 && !empty($shift_start) && !empty($check_in_time))) {
+            // Store daily points
+            $this->store_daily_points($staff_id, $date, $points, $shift_time, $check_in_time);
+        }
 
         return $points;
     }
