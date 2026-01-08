@@ -34,6 +34,7 @@ if (!$CI->db->table_exists(db_prefix() . 'staff')) {
 $attendance_table_exists = $CI->db->table_exists(db_prefix() . 'kpi_attendance');
 $work_shift_detail_exists = $CI->db->table_exists(db_prefix() . 'work_shift_detail');
 $shift_type_exists = $CI->db->table_exists(db_prefix() . 'shift_type');
+$check_in_out_exists = $CI->db->table_exists(db_prefix() . 'check_in_out');
 
 // Get filters
 $filters = [
@@ -86,6 +87,13 @@ if ($work_shift_detail_exists) {
     }
 }
 
+// Join check_in_out to get check-in time (type_check = 1)
+if ($check_in_out_exists) {
+    // Match by staff_id, date (date part only), and type_check = 1
+    $checkin_join_condition = 'cio.staff_id = s.staffid AND DATE(cio.date) = "' . $CI->db->escape_str($lookup_date) . '" AND cio.type_check = 1';
+    $join[] = 'LEFT JOIN ' . db_prefix() . 'check_in_out cio ON ' . $checkin_join_condition;
+}
+
 // Build where clause - start with active staff filter
 $where = ['AND s.active = 1'];
 
@@ -121,6 +129,10 @@ try {
         if ($shift_type_exists) {
             $additionalSelect[] = 'st.time_start_work as shift_start_time';
         }
+    }
+    // Add check-in time from check_in_out table
+    if ($check_in_out_exists) {
+        $additionalSelect[] = 'cio.date as check_in_datetime';
     }
     
     $result = data_tables_init($aColumns, $sIndexColumn, $sTable, $join, $where, $additionalSelect);
@@ -206,8 +218,17 @@ foreach ($rResult as $aRow) {
             
             $row[] = $shift_time;
 
-            // Check-in Time
-            $check_in_time = !empty($aRow['check_in_time']) ? $aRow['check_in_time'] : '-';
+            // Check-in Time - fetch from check_in_out table first, then fallback to attendance
+            $check_in_time = '-';
+            
+            if ($check_in_out_exists && !empty($aRow['check_in_datetime'])) {
+                // Get time from check_in_out table (date field contains datetime)
+                $check_in_time = date('H:i', strtotime($aRow['check_in_datetime']));
+            } elseif (!empty($aRow['check_in_time'])) {
+                // Fallback to attendance table check_in_time if available
+                $check_in_time = $aRow['check_in_time'];
+            }
+            
             $row[] = $check_in_time;
 
             // Points
@@ -248,7 +269,14 @@ foreach ($rResult as $aRow) {
             }
             $row[] = $shift_time;
             
-            $row[] = '-';
+            // Check-in Time - fetch from check_in_out table
+            $check_in_time = '-';
+            if ($check_in_out_exists && !empty($aRow['check_in_datetime'])) {
+                // Get time from check_in_out table (date field contains datetime)
+                $check_in_time = date('H:i', strtotime($aRow['check_in_datetime']));
+            }
+            $row[] = $check_in_time;
+            
             $row[] = '-';
             $row[] = '-';
         }
