@@ -92,15 +92,10 @@
                     <div class="panel-body">
                         <div class="panel-table-full">
                             <?php
-                            // Check if user has view permission (not just view_own)
-                            $has_view_permission = has_permission('kpi_attendance', '', 'view');
-                            
                             $table_data = [];
                             
-                            // Name column - only include if user has view permission (not just view_own)
-                            if ($has_view_permission) {
-                                $table_data[] = _l('name');
-                            }
+                            // Name column - always show since we're displaying all staff
+                            $table_data[] = _l('name');
                             
                             $table_data[] = _l('date');
                             $table_data[] = _l('shift_time');
