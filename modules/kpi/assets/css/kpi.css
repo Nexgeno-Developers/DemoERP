@@ -1,0 +1,27 @@
+/* KPI Module Styles */
+
+/* Attendance Page Styles */
+.kpi-attendance-leaderboard {
+    margin-bottom: 20px;
+}
+
+.kpi-filters-panel {
+    margin-bottom: 20px;
+}
+
+.kpi-filters-panel .form-group {
+    margin-bottom: 15px;
+}
+
+/* Table Panel Styles */
+.kpi-table-panel {
+    margin-top: 20px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .kpi-filters-panel .col-md-3 {
+        margin-bottom: 15px;
+    }
+}
+
