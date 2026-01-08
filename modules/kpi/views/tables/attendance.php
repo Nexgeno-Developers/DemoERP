@@ -50,6 +50,9 @@ if ($attendance_table_exists) {
     $aColumns[] = 'a.check_in_time';
     $aColumns[] = 'a.points';
     $aColumns[] = 'a.status';
+} else {
+    // Even if table doesn't exist, we still need date column for display
+    // We'll handle this in the row processing
 }
 
 $sIndexColumn = 'staffid';
@@ -140,8 +143,17 @@ foreach ($rResult as $aRow) {
 
         // Attendance columns - only if table exists
         if ($attendance_table_exists) {
-            // Date
-            $date = !empty($aRow['attendance_date']) ? _d($aRow['attendance_date']) : '-';
+            // Date - show attendance date if exists, otherwise show filter date or current date
+            if (!empty($aRow['attendance_date'])) {
+                $date = _d($aRow['attendance_date']);
+            } else {
+                // If no attendance record, show filter date or current date
+                if (!empty($filters['date'])) {
+                    $date = _d($filters['date']);
+                } else {
+                    $date = _d(date('Y-m-d'));
+                }
+            }
             $row[] = $date;
 
             // Shift Time
@@ -164,8 +176,13 @@ foreach ($rResult as $aRow) {
                 $row[] = html_escape($status);
             }
         } else {
-            // If attendance table doesn't exist, show empty values
-            $row[] = '-';
+            // If attendance table doesn't exist, show current date or filter date
+            if (!empty($filters['date'])) {
+                $date = _d($filters['date']);
+            } else {
+                $date = _d(date('Y-m-d'));
+            }
+            $row[] = $date;
             $row[] = '-';
             $row[] = '-';
             $row[] = '-';
