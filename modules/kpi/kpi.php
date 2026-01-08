@@ -15,6 +15,7 @@ define('KPI_MODULE_VERSION', '1.0.0');
 hooks()->add_action('admin_init', 'kpi_module_init_menu_items');
 hooks()->add_action('admin_init', 'kpi_permissions');
 hooks()->add_action('app_admin_head', 'kpi_add_head_components');
+hooks()->add_action('app_admin_footer', 'kpi_add_footer_components');
 
 /**
  * Register activation module hook
@@ -110,6 +111,20 @@ function kpi_add_head_components()
     // Load CSS for KPI module pages
     if (strpos($viewuri, 'admin/kpi/') !== false) {
         echo '<link href="' . module_dir_url(KPI_MODULE_NAME, 'assets/css/kpi.css') . '?v=' . KPI_MODULE_VERSION . '" rel="stylesheet" type="text/css" />' . PHP_EOL;
+    }
+}
+
+/**
+ * Add JavaScript files to admin footer
+ */
+function kpi_add_footer_components()
+{
+    $CI = &get_instance();
+    $viewuri = $_SERVER['REQUEST_URI'];
+
+    // Load JavaScript for attendance page
+    if (strpos($viewuri, 'admin/kpi/attendance') !== false) {
+        echo '<script src="' . module_dir_url(KPI_MODULE_NAME, 'assets/js/attendance.js') . '?v=' . KPI_MODULE_VERSION . '"></script>' . PHP_EOL;
     }
 }
 
