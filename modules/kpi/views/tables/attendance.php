@@ -32,6 +32,8 @@ if (!$CI->db->table_exists(db_prefix() . 'staff')) {
 }
 
 $attendance_table_exists = $CI->db->table_exists(db_prefix() . 'kpi_attendance');
+$work_shift_detail_exists = $CI->db->table_exists(db_prefix() . 'work_shift_detail');
+$shift_type_exists = $CI->db->table_exists(db_prefix() . 'shift_type');
 
 // Get filters
 $filters = [
@@ -39,6 +41,9 @@ $filters = [
     'staff_id' => $CI->input->post('staff_filter'),
     'status'   => $CI->input->post('status_filter'),
 ];
+
+// Determine the date to use for shift lookup
+$lookup_date = !empty($filters['date']) ? $filters['date'] : date('Y-m-d');
 
 // Define columns - always include name
 $aColumns = ['CONCAT(s.firstname, " ", s.lastname) as staff_name'];
@@ -58,14 +63,27 @@ if ($attendance_table_exists) {
 $sIndexColumn = 'staffid';
 $sTable       = db_prefix() . 'staff s';
 
-// Build JOIN - only if attendance table exists
+// Build JOINs
 $join = [];
+
+// Join attendance table if exists
 if ($attendance_table_exists) {
     $join_condition = 'a.staff_id = s.staffid';
     if (!empty($filters['date'])) {
         $join_condition .= ' AND a.date = "' . $CI->db->escape_str($filters['date']) . '"';
     }
     $join[] = 'LEFT JOIN ' . db_prefix() . 'kpi_attendance a ON ' . $join_condition;
+}
+
+// Join work_shift_detail to get shift information
+if ($work_shift_detail_exists) {
+    $shift_join_condition = 'wsd.staff_id = s.staffid AND wsd.date = "' . $CI->db->escape_str($lookup_date) . '"';
+    $join[] = 'LEFT JOIN ' . db_prefix() . 'work_shift_detail wsd ON ' . $shift_join_condition;
+    
+    // Join shift_type to get shift start time
+    if ($shift_type_exists) {
+        $join[] = 'LEFT JOIN ' . db_prefix() . 'shift_type st ON st.id = wsd.shift_id';
+    }
 }
 
 // Build where clause - start with active staff filter
@@ -96,6 +114,13 @@ try {
     $additionalSelect = ['s.staffid as staff_id'];
     if ($attendance_table_exists) {
         $additionalSelect[] = 'a.id as attendance_id';
+    }
+    // Add shift information to additional select
+    if ($work_shift_detail_exists) {
+        $additionalSelect[] = 'wsd.shift_id as shift_id';
+        if ($shift_type_exists) {
+            $additionalSelect[] = 'st.time_start_work as shift_start_time';
+        }
     }
     
     $result = data_tables_init($aColumns, $sIndexColumn, $sTable, $join, $where, $additionalSelect);
@@ -156,8 +181,29 @@ foreach ($rResult as $aRow) {
             }
             $row[] = $date;
 
-            // Shift Time
-            $shift_time = !empty($aRow['shift_time']) ? $aRow['shift_time'] : '-';
+            // Shift Time - check work_shift_detail first, then fallback to attendance shift_time
+            $shift_time = '-';
+            
+            if ($work_shift_detail_exists) {
+                // Check if staff has a shift record for this date
+                // shift_id will be NULL if no record exists in work_shift_detail (due to LEFT JOIN)
+                if (isset($aRow['shift_id']) && $aRow['shift_id'] !== null && $aRow['shift_id'] !== '') {
+                    // Staff has a shift, get the start time from shift_type
+                    if ($shift_type_exists && !empty($aRow['shift_start_time'])) {
+                        $shift_time = $aRow['shift_start_time'];
+                    } else {
+                        // Shift exists but no start time found in shift_type
+                        $shift_time = '-';
+                    }
+                } else {
+                    // No shift record found in work_shift_detail for this staff and date
+                    $shift_time = 'NS';
+                }
+            } else {
+                // If work_shift_detail table doesn't exist, use attendance shift_time
+                $shift_time = !empty($aRow['shift_time']) ? $aRow['shift_time'] : '-';
+            }
+            
             $row[] = $shift_time;
 
             // Check-in Time
@@ -183,7 +229,25 @@ foreach ($rResult as $aRow) {
                 $date = _d(date('Y-m-d'));
             }
             $row[] = $date;
-            $row[] = '-';
+            
+            // Shift Time - check work_shift_detail
+            $shift_time = '-';
+            if ($work_shift_detail_exists) {
+                // Check if staff has a shift record for this date
+                if (isset($aRow['shift_id']) && $aRow['shift_id'] !== null && $aRow['shift_id'] !== '') {
+                    // Staff has a shift, get the start time from shift_type
+                    if ($shift_type_exists && !empty($aRow['shift_start_time'])) {
+                        $shift_time = $aRow['shift_start_time'];
+                    } else {
+                        $shift_time = '-';
+                    }
+                } else {
+                    // No shift record found, show "NS"
+                    $shift_time = 'NS';
+                }
+            }
+            $row[] = $shift_time;
+            
             $row[] = '-';
             $row[] = '-';
             $row[] = '-';
