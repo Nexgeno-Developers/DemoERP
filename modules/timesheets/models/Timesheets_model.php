@@ -2553,46 +2553,200 @@ class timesheets_model extends app_model
 		return $this->db->query('select * from ' . db_prefix() . 'work_shift_detail where staff_id = ' . $staff_id)->result_array();
 	}
 	/**
+	 * Get staff working type from custom field
+	 * @param  integer $staff_id
+	 * @return string Returns WFO, WFH, Hybrid (defaults to WFO if not assigned)
+	 */
+	public function get_staff_working_type($staff_id)
+	{
+		// Get working_type from custom field (field ID 15)
+		$working_type = get_custom_field_value($staff_id, 15, 'staff', false);
+		
+		// Handle null, false, or empty values - convert to empty string
+		if ($working_type === null || $working_type === false) {
+			$working_type = '';
+		}
+		
+		// Trim whitespace and convert to uppercase for validation
+		$working_type = trim((string)$working_type);
+		$working_type_upper = strtoupper($working_type);
+		
+		// Validate and return only valid values
+		if (!empty($working_type) && in_array($working_type_upper, ['WFO', 'WFH', 'HYBRID'])) {
+			return $working_type_upper;
+		}
+		
+		// Fallback: If no working type is assigned or invalid, default to WFO (Work From Office)
+		return 'WFO';
+	}
+
+	/**
+	 * Validate IP address against whitelist
+	 * @param  string $client_ip
+	 * @return boolean
+	 */
+	private function validate_ip_whitelist($client_ip)
+	{
+		if (empty($client_ip)) {
+			return false;
+		}
+		
+		$ip_list = $this->get_valid_ip();
+		if ($ip_list && count($ip_list) > 0) {
+			foreach ($ip_list as $key => $row) {
+				if ($client_ip == $row['ip']) {
+					return true;
+				}
+			}
+		}
+		
+		return false;
+	}
+
+	/**
+	 * Validate workplace location
+	 * @param  integer $staff_id
+	 * @param  string $latitude
+	 * @param  string $longitude
+	 * @return array ['valid' => boolean, 'workplace_id' => string, 'error_code' => integer]
+	 */
+	private function validate_workplace_location($staff_id, $latitude, $longitude)
+	{
+		// Check if staff has workplace assigned
+		$data_location = $this->get_location_staff($staff_id);
+		
+		if (empty($data_location->workplace_id) || empty($data_location->latitude) || empty($data_location->longitude)) {
+			// Error 8: No workplace assigned to staff
+			return ['valid' => false, 'workplace_id' => '', 'error_code' => 8];
+		}
+		
+		if (empty($latitude) || empty($longitude)) {
+			// Error 3: Location information is unknown
+			return ['valid' => false, 'workplace_id' => $data_location->workplace_id, 'error_code' => 3];
+		}
+		
+		// Validate location against workplace coordinates and radius
+		$res_coordinates = $this->check_attendance_by_coordinates($staff_id, $latitude, $longitude);
+		
+		if ($res_coordinates->error_code == 1) {
+			// Valid location
+			return ['valid' => true, 'workplace_id' => $res_coordinates->workplace_id, 'error_code' => 0];
+		} else {
+			// Invalid location (error_code 2 = not allowed, 3 = unknown)
+			return ['valid' => false, 'workplace_id' => $res_coordinates->workplace_id, 'error_code' => $res_coordinates->error_code];
+		}
+	}
+
+	/**
 	 * check in
 	 * @param  array $data
-	 * @return integer
+	 * @return integer|boolean Returns error code (integer) or true/false
 	 */
 	public function check_in($data)
 	{
-		// Check valid IP 
-		$enable_check_valid_ip = get_timesheets_option('timekeeping_enable_valid_ip');
-		if ($enable_check_valid_ip && $enable_check_valid_ip == 1) {
-			$client_ip = '';
-			if (isset($data['ip_address'])) {
-				$client_ip = $data['ip_address'];
-				unset($data['ip_address']);
-			} else {
-				$client_ip = get_client_ip();
-			}
-			if ($client_ip != '') {
-				$ip_list = $this->get_valid_ip();
-				if ($ip_list && count($ip_list) > 0) {
-					$registered = false;
-					foreach ($ip_list as $key => $row) {
-						if ($client_ip == $row['ip']) {
-							$registered = !$registered;
-							break;
-						}
-					}
-					if (!$registered) {
-						// Access denie
-						return 5;
-					}
-				} else {
-					// Access denie
-					return 5;
-				}
-			} else {
-				// Cannot get client IP address
-				return 6;
+		// Get staff ID
+		$staff_id = isset($data['staff_id']) ? $data['staff_id'] : get_staff_user_id();
+		
+		// Get staff working type from custom field (defaults to WFO if not assigned)
+		$working_type = $this->get_staff_working_type($staff_id);
+		
+		// Ensure working_type is always a valid value (safety check)
+		if (!in_array($working_type, ['WFO', 'WFH', 'HYBRID'])) {
+			$working_type = 'WFO';
+		}
+		
+		// Get client IP address (needed for WFO and Hybrid)
+		$client_ip = '';
+		if (isset($data['ip_address'])) {
+			$client_ip = $data['ip_address'];
+		} else {
+			$client_ip = get_client_ip();
+		}
+		
+		// Get location coordinates (needed for WFH and Hybrid)
+		$latitude = '';
+		$longitude = '';
+		if (isset($data['location_user']) && !empty($data['location_user'])) {
+			$data_location = explode(',', $data['location_user']);
+			if (isset($data_location[0]) && isset($data_location[1])) {
+				$latitude = $data_location[0];
+				$longitude = $data_location[1];
 			}
 		}
-		// 
+		
+		// Apply validation based on working type
+		$validation_passed = false;
+		$workplace_id = '';
+		$point_id = isset($data['point_id']) ? $data['point_id'] : '';
+		
+		switch ($working_type) {
+			case 'WFO':
+				// WFO: Only allow check-in if IP matches whitelist
+				if (empty($client_ip)) {
+					// Error 6: Cannot get client IP address
+					return 6;
+				}
+				
+				if ($this->validate_ip_whitelist($client_ip)) {
+					$validation_passed = true;
+				} else {
+					// Error 5: Access denied - IP not in whitelist
+					return 5;
+				}
+				break;
+				
+			case 'WFH':
+				// WFH: Only allow check-in if location is within assigned workplace radius
+				if (empty($latitude) || empty($longitude)) {
+					// Error 3: Location information is unknown
+					return 3;
+				}
+				
+				$location_validation = $this->validate_workplace_location($staff_id, $latitude, $longitude);
+				if ($location_validation['valid']) {
+					$validation_passed = true;
+					$workplace_id = $location_validation['workplace_id'];
+				} else {
+					// Return the specific error code from validation
+					return $location_validation['error_code'];
+				}
+				break;
+				
+			case 'HYBRID':
+				// Hybrid: First check IP whitelist, if fails then check workplace location
+				// Step 1: Try IP validation first
+				if (!empty($client_ip) && $this->validate_ip_whitelist($client_ip)) {
+					$validation_passed = true;
+				} else {
+					// Step 2: IP validation failed, try workplace location validation
+					if (empty($latitude) || empty($longitude)) {
+						// Error 3: Location information is unknown (needed for fallback)
+						return 3;
+					}
+					
+					$location_validation = $this->validate_workplace_location($staff_id, $latitude, $longitude);
+					if ($location_validation['valid']) {
+						$validation_passed = true;
+						$workplace_id = $location_validation['workplace_id'];
+					} else {
+						// Return the specific error code from location validation
+						return $location_validation['error_code'];
+					}
+				}
+				break;
+				
+			default:
+				// Error 7: Invalid working type (should not reach here, but safety check)
+				return 7;
+		}
+		
+		// If validation failed, return false
+		if (!$validation_passed) {
+			return false;
+		}
+		
+		// Validation passed, continue with check-in process
+		// Prepare date and staff_id
 		$id_admin = 0;
 		$date = '';
 		$affectedrows = 0;
@@ -2603,7 +2757,7 @@ class timesheets_model extends app_model
 		if (!isset($data['staff_id'])) {
 			$data['staff_id'] = get_staff_user_id();
 		}
-		if ($data['edit_date'] != '') {
+		if (isset($data['edit_date']) && $data['edit_date'] != '') {
 			$temp = $this->format_date_time($data['edit_date']);
 			$split_date = explode(' ', $temp);
 			$date = $split_date[0];
@@ -2615,102 +2769,47 @@ class timesheets_model extends app_model
 		unset($data['edit_date']);
 
 		if (($date != '') && ($data['staff_id'] != '')) {
+			// Initialize check_more variable for route/coordinates tracking
+			// This is used later to determine if customer email notifications should be sent
 			$check_more = '';
-			$count_st = 0;
-			$data_setting_coordinates = get_timesheets_option('allow_attendance_by_coordinates');
-			if ($data_setting_coordinates && $data_setting_coordinates == 1) {
-				$check_more = 'check_coordinates';
-				$count_st++;
-			}
+			
+			// Handle route point validation if route-based attendance is enabled
+			// This is separate from working_type validation and applies to route-based attendance
 			$data_setting_rooute = get_timesheets_option('allow_attendance_by_route');
-			if ($data_setting_rooute && $data_setting_rooute == 1) {
-				$check_more = 'check_route';
-				$count_st++;
-			}
-			$point_id = '';
-			$workplace_id = '';
-			if ($check_more != '') {
-				if (isset($data['location_user'])) {
-					$data_location = explode(',', $data['location_user']);
-					if (isset($data_location[0]) && isset($data_location[1])) {
-						$latitude = $data_location[0];
-						$longitude = $data_location[1];
-						if ($count_st == 2) {
-							if (isset($data['point_id'])) {
-								if ($data['point_id'] != '') {
-									$point_id = $data['point_id'];
-								}
-							}
-							if ($point_id == '') {
-								$point_id = $this->get_next_point($data['staff_id'], $date, $latitude, $longitude)->id;
-							}
-							if ($point_id == '') {
-								$check_more = 'check_coordinates';
-							}
-						}
-						switch ($check_more) {
-							case 'check_route':
-								// Attendance by route point
-								// Get geolocation of this route point and caculation distance to location of you
-								// If valid will return route id to insert in check_in_out table
-								// Else return error:
-								// Error 2: Current location is not allowed to attendance
-								// Error 3: Location information is unknown
-								if ($point_id == '') {
-									if (isset($data['point_id'])) {
-										if ($data['point_id'] != '') {
-											$point_id = $data['point_id'];
-										}
-									}
-									if ($point_id == '') {
-										$point_id = $this->get_next_point($data['staff_id'], $date, $latitude, $longitude)->id;
-									}
-								}
-								if ($point_id != '') {
-									$route_point_latitude = '';
-									$route_point_longitude = '';
-									$max_distance = '';
-									$data_route_point = $this->get_route_point($point_id);
-									if ($data_route_point) {
-										$route_point_latitude = $data_route_point->latitude;
-										$route_point_longitude = $data_route_point->longitude;
-										$max_distance = $data_route_point->distance;
-									}
-									if ($latitude != '' && $longitude != '' && $route_point_latitude != '' && $route_point_longitude != '' && $max_distance != '') {
-										$cal_distance = $this->compute_distance($route_point_latitude, $route_point_longitude, $latitude, $longitude);
-										if ((float) $cal_distance > (float) $max_distance) {
-											// Invalid distance
-											// Error 2: Current location is not allowed to attendance
-											return 2;
-										}
-									} else {
-										// Error 3: Location information is unknown
-										return 3;
-									}
-								} else {
-									// Error 4: Route point is unknown
-									return 4;
-								}
-								break;
-							case 'check_coordinates':
-								// Attendance by geolocation
-								$res_coordinates = $this->check_attendance_by_coordinates($data['staff_id'], $latitude, $longitude);
-								$error = $res_coordinates->error_code;
-								$workplace_id = $res_coordinates->workplace_id;
-								if ($error == 2 || $error == 3) {
-									// Error 2: Current location is not allowed to attendance
-									// Error 3: Location information is unknown
-									return $error;
-								}
-								break;
-						}
-					} else {
-						// Error 3: Location information is unknown
-						return 3;
-					}
+			if ($data_setting_rooute && $data_setting_rooute == 1 && !empty($latitude) && !empty($longitude)) {
+				if (isset($data['point_id']) && $data['point_id'] != '') {
+					$point_id = $data['point_id'];
 				} else {
-					// Error 3: Location information is unknown
-					return 3;
+					$point_id_obj = $this->get_next_point($data['staff_id'], $date, $latitude, $longitude);
+					$point_id = $point_id_obj ? $point_id_obj->id : '';
+				}
+				
+				// If route point found, validate it and set check_more flag
+				if ($point_id != '') {
+					$check_more = 'check_route'; // Set flag for customer email notification logic
+					$route_point_latitude = '';
+					$route_point_longitude = '';
+					$max_distance = '';
+					$data_route_point = $this->get_route_point($point_id);
+					if ($data_route_point) {
+						$route_point_latitude = $data_route_point->latitude;
+						$route_point_longitude = $data_route_point->longitude;
+						$max_distance = $data_route_point->distance;
+					}
+					if ($latitude != '' && $longitude != '' && $route_point_latitude != '' && $route_point_longitude != '' && $max_distance != '') {
+						$cal_distance = $this->compute_distance($route_point_latitude, $route_point_longitude, $latitude, $longitude);
+						if ((float) $cal_distance > (float) $max_distance) {
+							// Invalid distance for route point
+							// Error 2: Current location is not allowed to attendance
+							return 2;
+						}
+					}
+				}
+			} else {
+				// Check if coordinates-based attendance is enabled (for check_more tracking)
+				$data_setting_coordinates = get_timesheets_option('allow_attendance_by_coordinates');
+				if ($data_setting_coordinates && $data_setting_coordinates == 1 && !empty($latitude) && !empty($longitude)) {
+					$check_more = 'check_coordinates';
 				}
 			}
 			$send_notify = false;

@@ -3946,47 +3946,53 @@ class timesheets extends AdminController {
 /**
  * check in timesheet
  */
-public function check_in_ts() {
-	if ($this->input->post()) {
-		$data = $this->input->post();
-		$type = $data['type_check'];
-		$data['send_notify'] = true;
-		$re = $this->timesheets_model->check_in($data);
-		if (is_numeric($re)) {
-			// Error
-			if ($re == 2) {
-				set_alert('warning', _l('your_current_location_is_not_allowed_to_take_attendance'));
-			}
-			if ($re == 3) {
-				set_alert('warning', _l('location_information_is_unknown'));
-			}
-			if ($re == 4) {
-				set_alert('warning', _l('route_point_is_unknown'));
-			}
-			if ($re == 5) {
-				set_alert('danger', _l('ts_access_denie'));
-			}
-			if ($re == 6) {
-				set_alert('danger', _l('ts_cannot_get_client_ip_address'));
-			}
-		} else {
-			if ($re == true) {
-				if ($type == 1) {
-					set_alert('success', _l('check_in_successfull'));
-				} else {
-					set_alert('success', _l('check_out_successfull'));
+	public function check_in_ts() {
+		if ($this->input->post()) {
+			$data = $this->input->post();
+			$type = $data['type_check'];
+			$data['send_notify'] = true;
+			$re = $this->timesheets_model->check_in($data);
+			if (is_numeric($re)) {
+				// Error codes
+				if ($re == 2) {
+					set_alert('warning', _l('your_current_location_is_not_allowed_to_take_attendance'));
+				}
+				if ($re == 3) {
+					set_alert('warning', _l('location_information_is_unknown'));
+				}
+				if ($re == 4) {
+					set_alert('warning', _l('route_point_is_unknown'));
+				}
+				if ($re == 5) {
+					set_alert('danger', _l('ts_access_denie'));
+				}
+				if ($re == 6) {
+					set_alert('danger', _l('ts_cannot_get_client_ip_address'));
+				}
+				if ($re == 7) {
+					set_alert('danger', 'Working type is missing or invalid. Please contact administrator to set your working type (WFO/WFH/Hybrid).');
+				}
+				if ($re == 8) {
+					set_alert('warning', 'No workplace assigned. Please contact administrator to assign a workplace for work-from-home attendance.');
 				}
 			} else {
-				if ($type == 1) {
-					set_alert('warning', _l('check_in_not_successfull'));
+				if ($re == true) {
+					if ($type == 1) {
+						set_alert('success', _l('check_in_successfull'));
+					} else {
+						set_alert('success', _l('check_out_successfull'));
+					}
 				} else {
-					set_alert('warning', _l('check_out_not_successfull'));
+					if ($type == 1) {
+						set_alert('warning', _l('check_in_not_successfull'));
+					} else {
+						set_alert('warning', _l('check_out_not_successfull'));
+					}
 				}
 			}
+			redirect(admin_url('timesheets/timekeeping?group=timesheets'));
 		}
-		redirect(admin_url('timesheets/timekeeping?group=timesheets'));
 	}
-}
 /**
  * get leave setting
  * @return json
