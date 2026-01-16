@@ -62,9 +62,14 @@
                                             <label><?php echo _l('status'); ?></label>
                                             <select name="status_filter" id="status_filter" class="form-control selectpicker" data-width="100%">
                                                 <option value=""><?php echo _l('all'); ?></option>
-                                                <option value="present"><?php echo _l('present'); ?></option>
-                                                <option value="absent"><?php echo _l('absent'); ?></option>
-                                                <option value="late"><?php echo _l('late'); ?></option>
+                                                <option value="Early Check-in">Early Check-in</option>
+                                                <option value="Punctual">Punctual</option>
+                                                <option value="Delayed">Delayed</option>
+                                                <option value="Grace Window">Grace Window</option>
+                                                <option value="Late">Late</option>
+                                                <option value="Very Late">Very Late</option>
+                                                <option value="Absent">Absent</option>
+                                                <option value="No Shift">No Shift</option>
                                             </select>
                                         </div>
                                         <div class="col-md-3 text-right">

@@ -117,16 +117,8 @@ if ($has_view_permission && !empty($filters['staff_id'])) {
     $where[] = 'AND s.staffid = ' . (int)$filters['staff_id'];
 }
 
-// Apply status filter - only if attendance table exists
-if ($attendance_table_exists && !empty($filters['status'])) {
-    if (strtolower($filters['status']) == 'absent') {
-        // For absent, show staff with absent status OR no attendance record
-        $where[] = 'AND (a.status = "' . $CI->db->escape_str($filters['status']) . '" OR a.status IS NULL)';
-    } else {
-        // For other statuses, only show staff with matching status
-        $where[] = 'AND a.status = "' . $CI->db->escape_str($filters['status']) . '"';
-    }
-}
+// Apply status filter - we'll filter in PHP after calculating points
+// Note: Status filtering will be done after points calculation since status is derived from points
 
 try {
     $additionalSelect = ['s.staffid as staff_id'];
@@ -287,8 +279,20 @@ foreach ($rResult as $aRow) {
             }
             $row[] = $points_display;
 
-            // Status - use model method to format badge
-            $status = !empty($aRow['status']) ? $aRow['status'] : '-';
+            // Status - calculate from points
+            $status = '-';
+            if (method_exists($CI->kpi_model, 'get_status_from_points')) {
+                $status = $CI->kpi_model->get_status_from_points($points, $shift_time, $date_for_points);
+            } elseif (!empty($aRow['status'])) {
+                $status = $aRow['status'];
+            }
+            
+            // Apply status filter if set (filter after calculation)
+            if (!empty($filters['status']) && strtolower($filters['status']) != strtolower($status)) {
+                continue; // Skip this row if status doesn't match
+            }
+            
+            // Format status badge
             if (method_exists($CI->kpi_model, 'format_status_badge')) {
                 $row[] = $CI->kpi_model->format_status_badge($status);
             } else {

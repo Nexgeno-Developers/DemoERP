@@ -99,6 +99,62 @@ class Kpi_model extends App_Model
     }
 
     /**
+     * Get status title based on points
+     * Status mapping:
+     * - 15 min early to before shift: +5 → Early Check-in
+     * - On shift time to +5 min: +4 → Punctual
+     * - +6 to +15 min: +2 → Delayed
+     * - +16 to +29 min: 0 → Grace Window
+     * - +30 to +59 min: -2 → Late
+     * - 60 min or more: -4 → Very Late
+     * - No check-in: -6 → Absent
+     * - No shift assigned: 0 → No Shift
+     * - Date before 2026 or future: 0 → Not Applicable
+     * 
+     * @param int $points
+     * @param string $shift_time
+     * @param string $date
+     * @return string
+     */
+    public function get_status_from_points($points, $shift_time = null, $date = null)
+    {
+        // Check if date is before 2026 or future - returns "Not Applicable"
+        if (!empty($date)) {
+            $date_year = (int)date('Y', strtotime($date));
+            $current_date = date('Y-m-d');
+            
+            if ($date_year < 2026 || $date > $current_date) {
+                return 'Not Applicable';
+            }
+        }
+        
+        // Check if no shift assigned - returns "No Shift"
+        if ($shift_time == 'NS' || $shift_time == '-' || empty($shift_time)) {
+            return 'No Shift';
+        }
+        
+        // Map points to status
+        switch ($points) {
+            case 5:
+                return 'Early Check-in';  // 15 min early to before shift
+            case 4:
+                return 'Punctual';        // On shift time to +5 min
+            case 2:
+                return 'Delayed';         // +6 to +15 min
+            case 0:
+                return 'Grace Window';    // +16 to +29 min
+            case -2:
+                return 'Late';            // +30 to +59 min
+            case -4:
+                return 'Very Late';       // 60 min or more
+            case -6:
+                return 'Absent';          // No check-in
+            default:
+                return 'Not Applicable';  // Unknown points value
+        }
+    }
+
+    /**
      * Format attendance status badge
      * @param string $status
      * @return string
@@ -111,15 +167,31 @@ class Kpi_model extends App_Model
 
         $status_lower = strtolower($status);
         
+        // New status badges
         switch ($status_lower) {
+            case 'early check-in':
+                return '<span class="label label-success">Early Check-in</span>';
+            case 'punctual':
+                return '<span class="label label-success">Punctual</span>';
+            case 'delayed':
+                return '<span class="label label-info">Delayed</span>';
+            case 'grace window':
+                return '<span class="label label-default">Grace Window</span>';
+            case 'late':
+                return '<span class="label label-warning">Late</span>';
+            case 'very late':
+                return '<span class="label label-danger">Very Late</span>';
+            case 'absent':
+                return '<span class="label label-danger">Absent</span>';
+            case 'no shift':
+                return '<span class="label label-default">No Shift</span>';
+            case 'not applicable':
+                return '<span class="label label-default">Not Applicable</span>';
+            // Legacy statuses
             case 'present':
                 return '<span class="label label-success">' . _l('present') . '</span>';
-            case 'absent':
-                return '<span class="label label-danger">' . _l('absent') . '</span>';
-            case 'late':
-                return '<span class="label label-warning">' . _l('late') . '</span>';
             default:
-                return '<span class="label label-default">' . $status . '</span>';
+                return '<span class="label label-default">' . html_escape($status) . '</span>';
         }
     }
 
