@@ -608,13 +608,133 @@ class Kpi_model extends CI_Model
         $result_present = $this->db->query($sql_present, [$today])->row_array();
         $present = $result_present['present'] ?? 0;
 
-        // Calculate absent (active staff who didn't check in today)
-        $absent = $total_active - $present;
+        // Get staff on leave (new/pending or approved leave applications covering today, excluding rejected)
+        // Check if timesheets module table exists
+        $on_leave = 0;
+        if ($this->db->table_exists(db_prefix() . 'timesheets_requisition_leave')) {
+            $sql_on_leave = "
+                SELECT COUNT(DISTINCT trl.staff_id) as on_leave
+                FROM " . db_prefix() . "timesheets_requisition_leave trl
+                INNER JOIN " . db_prefix() . "staff s ON s.staffid = trl.staff_id
+                WHERE (trl.status = 0 OR trl.status = 1)
+                AND s.active = 1
+                AND ? BETWEEN DATE(trl.start_time) AND DATE(trl.end_time)
+                AND trl.staff_id NOT IN (
+                    SELECT DISTINCT cio.staff_id
+                    FROM " . db_prefix() . "check_in_out cio
+                    WHERE DATE(cio.date) = ?
+                    AND cio.type_check = 1
+                )
+            ";
+            $result_on_leave = $this->db->query($sql_on_leave, [$today, $today])->row_array();
+            $on_leave = $result_on_leave['on_leave'] ?? 0;
+        }
+
+        // Calculate absent (active staff who didn't check in today and are not on leave)
+        $absent = $total_active - $present - $on_leave;
 
         return [
             'total_active' => (int)$total_active,
             'present'      => (int)$present,
+            'on_leave'    => (int)$on_leave,
             'absent'      => (int)$absent,
         ];
+    }
+
+    /**
+     * Get list of staff who are absent today
+     * @return array Array of staff objects with id, name, email
+     */
+    public function get_absent_staff_list()
+    {
+        $today = date('Y-m-d');
+        
+        // Get all active staff IDs who checked in today
+        $sql_checked_in = "
+            SELECT DISTINCT cio.staff_id
+            FROM " . db_prefix() . "check_in_out cio
+            WHERE DATE(cio.date) = ?
+            AND cio.type_check = 1
+        ";
+        $checked_in_staff = $this->db->query($sql_checked_in, [$today])->result_array();
+        $checked_in_ids = array_column($checked_in_staff, 'staff_id');
+        
+        // Get staff IDs on leave (new/pending or approved, excluding rejected)
+        $on_leave_ids = [];
+        if ($this->db->table_exists(db_prefix() . 'timesheets_requisition_leave')) {
+            $sql_on_leave = "
+                SELECT DISTINCT trl.staff_id
+                FROM " . db_prefix() . "timesheets_requisition_leave trl
+                INNER JOIN " . db_prefix() . "staff s ON s.staffid = trl.staff_id
+                WHERE (trl.status = 0 OR trl.status = 1)
+                AND s.active = 1
+                AND ? BETWEEN DATE(trl.start_time) AND DATE(trl.end_time)
+            ";
+            $on_leave_staff = $this->db->query($sql_on_leave, [$today])->result_array();
+            $on_leave_ids = array_column($on_leave_staff, 'staff_id');
+        }
+        
+        // Get absent staff (active staff not checked in and not on leave)
+        $this->db->select('staffid, firstname, lastname, email, CONCAT(firstname, " ", lastname) as full_name');
+        $this->db->from(db_prefix() . 'staff');
+        $this->db->where('active', 1);
+        
+        if (!empty($checked_in_ids)) {
+            $this->db->where_not_in('staffid', $checked_in_ids);
+        }
+        
+        if (!empty($on_leave_ids)) {
+            $this->db->where_not_in('staffid', $on_leave_ids);
+        }
+        
+        $this->db->order_by('firstname', 'ASC');
+        $result = $this->db->get()->result_array();
+        
+        return $result;
+    }
+
+    /**
+     * Get list of staff who are on leave today
+     * @return array Array of staff objects with id, name, email, leave details
+     */
+    public function get_on_leave_staff_list()
+    {
+        $today = date('Y-m-d');
+        
+        $on_leave_staff = [];
+        
+        if ($this->db->table_exists(db_prefix() . 'timesheets_requisition_leave')) {
+            // Get staff on leave (new/pending or approved, excluding rejected) who haven't checked in
+            $sql_on_leave = "
+                SELECT DISTINCT 
+                    s.staffid,
+                    s.firstname,
+                    s.lastname,
+                    s.email,
+                    CONCAT(s.firstname, ' ', s.lastname) as full_name,
+                    trl.start_time,
+                    trl.end_time,
+                    trl.subject,
+                    trl.rel_type,
+                    trl.status
+                FROM " . db_prefix() . "timesheets_requisition_leave trl
+                INNER JOIN " . db_prefix() . "staff s ON s.staffid = trl.staff_id
+                WHERE (trl.status = 0 OR trl.status = 1)
+                AND s.active = 1
+                AND ? BETWEEN DATE(trl.start_time) AND DATE(trl.end_time)
+                AND trl.staff_id NOT IN (
+                    SELECT DISTINCT cio.staff_id
+                    FROM " . db_prefix() . "check_in_out cio
+                    WHERE DATE(cio.date) = ?
+                    AND cio.type_check = 1
+                )
+                ORDER BY s.firstname ASC
+            ";
+            
+            $result = $this->db->query($sql_on_leave, [$today, $today])->result_array();
+            $on_leave_staff = $result;
+        }
+        
+        return $on_leave_staff;
     }
 }

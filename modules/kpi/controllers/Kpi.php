@@ -266,4 +266,54 @@ class Kpi extends AdminController
     {
         redirect(admin_url('kpi'));
     }
+
+    /**
+     * Get staff list for absent or on leave (AJAX)
+     * @return json
+     */
+    public function get_staff_list()
+    {
+        if (!is_staff_logged_in()) {
+            echo json_encode(['success' => false, 'message' => 'Access denied', 'staff' => []]);
+            return;
+        }
+
+        // Check if user has role 7 or is admin
+        $current_staff = get_staff();
+        $has_access = false;
+        if ($current_staff) {
+            if (isset($current_staff->role) && $current_staff->role == 7) {
+                $has_access = true;
+            }
+            if (is_admin()) {
+                $has_access = true;
+            }
+        }
+        if (!$has_access) {
+            echo json_encode(['success' => false, 'message' => 'Access denied', 'staff' => []]);
+            return;
+        }
+
+        $type = $this->input->get('type'); // 'absent' or 'on_leave'
+
+        if ($type === 'absent') {
+            $staff_list = $this->kpi_model->get_absent_staff_list();
+            echo json_encode([
+                'success' => true,
+                'type' => 'absent',
+                'title' => 'Absent Staff',
+                'staff' => $staff_list
+            ]);
+        } elseif ($type === 'on_leave') {
+            $staff_list = $this->kpi_model->get_on_leave_staff_list();
+            echo json_encode([
+                'success' => true,
+                'type' => 'on_leave',
+                'title' => 'Staff On Leave',
+                'staff' => $staff_list
+            ]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Invalid type', 'staff' => []]);
+        }
+    }
 }
