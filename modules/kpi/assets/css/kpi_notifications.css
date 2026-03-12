@@ -1,0 +1,313 @@
+/* KPI Notifications Styling */
+.kpi-notifications-wrapper .dropdown-menu {
+    min-width: 400px;
+    max-width: 450px;
+    max-height: 500px;
+    overflow: hidden;
+}
+
+.kpi-notifications .nav-tabs-segmented {
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    background: #f9fafb;
+    padding: 2px;
+}
+
+.kpi-notifications .nav-tabs-segmented > li > a {
+    border: none;
+    border-radius: 4px;
+    margin: 0;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #6b7280;
+    transition: all 0.2s ease;
+}
+
+.kpi-notifications .nav-tabs-segmented > li.active > a {
+    background: #3b82f6 !important;
+    color: white !important;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+    font-weight: 600;
+}
+
+.kpi-notifications .nav-tabs-segmented > li > a:hover {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.kpi-notifications .nav-tabs-segmented > li.active > a:hover {
+    background: #2563eb !important;
+    color: white !important;
+}
+
+.kpi-request-item {
+    padding: 12px 16px;
+    border-bottom: 1px solid #f3f4f6;
+    transition: background-color 0.2s;
+}
+
+.kpi-request-item:hover {
+    background-color: #f9fafb;
+}
+
+.kpi-request-item:last-child {
+    border-bottom: none;
+}
+
+.kpi-request-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+.kpi-request-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.kpi-request-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 4px;
+}
+
+.kpi-request-meta {
+    font-size: 12px;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.kpi-request-badge {
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.kpi-request-badge.ot {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.kpi-request-badge.pl {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+/* Badge colors - using danger red */
+.kpi-notifications .badge-danger {
+    background-color: #dc3545 !important;
+    color: white !important;
+}
+
+.kpi-notifications .badge {
+    background-color: #dc3545 !important;
+    color: white !important;
+}
+
+.kpi-notifications-badge {
+    background-color: #dc3545 !important;
+    color: white !important;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1;
+}
+
+/* Ensure tab badges are visible and red */
+.kpi-notifications .nav-tabs .badge {
+    background-color: #dc3545 !important;
+    color: white !important;
+    font-weight: bold !important;
+    min-width: 18px;
+    text-align: center;
+    border-radius: 10px;
+    padding: 2px 6px;
+    font-size: 11px;
+    line-height: 1;
+    margin-left: 4px;
+}
+
+/* Badge on active tab - make it white with red text for better contrast */
+.kpi-notifications .nav-tabs li.active .badge {
+    background-color: white !important;
+    color: #dc3545 !important;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Override any default badge styling */
+.kpi-notifications .nav-tabs a .badge {
+    background-color: #dc3545 !important;
+    color: white !important;
+}
+
+.kpi-notifications .nav-tabs li.active a .badge {
+    background-color: white !important;
+    color: #dc3545 !important;
+}
+
+/* Tab content styling with scrolling - force scrollbar to always show */
+.kpi-notifications .tab-content {
+    border: none;
+    padding: 0;
+    max-height: 280px !important; /* Reduced height to force scrolling */
+    overflow-y: scroll !important; /* Force scrollbar to always show */
+    overflow-x: hidden;
+    min-height: 200px; /* Minimum height to ensure scrollbar space */
+}
+
+/* Custom scrollbar for notification content - more visible */
+.kpi-notifications .tab-content::-webkit-scrollbar {
+    width: 12px;
+    -webkit-appearance: none;
+}
+
+.kpi-notifications .tab-content::-webkit-scrollbar-track {
+    background: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+}
+
+.kpi-notifications .tab-content::-webkit-scrollbar-thumb {
+    background: #adb5bd;
+    border-radius: 6px;
+    border: 2px solid #f8f9fa;
+    min-height: 20px;
+}
+
+.kpi-notifications .tab-content::-webkit-scrollbar-thumb:hover {
+    background: #6c757d;
+}
+
+.kpi-notifications .tab-content::-webkit-scrollbar-thumb:active {
+    background: #495057;
+}
+
+/* For Firefox */
+.kpi-notifications .tab-content {
+    scrollbar-width: auto;
+    scrollbar-color: #adb5bd #f8f9fa;
+}
+
+/* Force scrollbar space even when not needed */
+.kpi-notifications .tab-content::-webkit-scrollbar-corner {
+    background: #f8f9fa;
+}
+
+/* Alternative approach - force scrollbar visibility */
+.kpi-notifications .tab-content {
+    scrollbar-gutter: stable;
+}
+
+/* Ensure minimum content height to trigger scrollbar */
+.kpi-notifications .tab-pane {
+    padding: 0;
+    min-height: 300px;
+}
+
+/* Empty state styling */
+.kpi-notifications .tw-text-center {
+    padding: 20px;
+}
+
+.kpi-notifications .tw-text-center i {
+    display: block;
+    margin-bottom: 8px;
+    opacity: 0.5;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .kpi-notifications-wrapper .dropdown-menu {
+        min-width: 320px;
+        max-width: 350px;
+    }
+    
+    .kpi-request-item {
+        padding: 10px 12px;
+    }
+    
+    .kpi-request-avatar {
+        width: 28px;
+        height: 28px;
+    }
+    
+    .kpi-request-title {
+        font-size: 13px;
+    }
+    
+    .kpi-request-meta {
+        font-size: 11px;
+    }
+}
+
+/* Animation for notification updates */
+.kpi-notifications-badge {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Request details page styling */
+.request-details-header {
+    border-bottom: 2px solid #e5e7eb;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.request-details-actions {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.request-details-actions .btn {
+    margin-bottom: 8px;
+}
+
+.request-details-actions .btn:last-child {
+    margin-bottom: 0;
+}
+
+/* Status labels */
+.label-pending {
+    background-color: #f59e0b;
+}
+
+.label-approved {
+    background-color: #10b981;
+}
+
+.label-rejected {
+    background-color: #ef4444;
+}
+
+/* Modal styling */
+#rejectModal .modal-body {
+    padding: 20px;
+}
+
+#rejectModal .form-group {
+    margin-bottom: 15px;
+}
+
+#rejectModal textarea {
+    resize: vertical;
+    min-height: 80px;
+}

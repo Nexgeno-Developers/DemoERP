@@ -1,0 +1,109 @@
+/* KPI Module Custom Styles */
+
+#kpi-filter-panel label {
+    font-weight: 600;
+    margin-bottom: 3px;
+}
+
+#kpi-filter-panel .form-group {
+    margin-bottom: 15px;
+}
+
+#kpi-filter-panel h4 i {
+    color: #5bc0de;
+    margin-right: 5px;
+}
+
+.kpi-summary-box {
+    padding: 15px;
+    border-radius: 6px;
+    background: #f7f9fb;
+    border: 1px solid #e2e6ea;
+    margin-bottom: 20px;
+}
+
+.badge-status {
+    padding: 5px 10px;
+    font-size: 12px;
+    border-radius: 25px;
+}
+
+/* Ensure staff names are fully visible - CRITICAL FIX */
+#table-kpi tbody td:first-child,
+#table-kpi thead th:first-child {
+    min-width: 200px !important;
+    width: 200px !important;
+    max-width: 250px !important;
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    word-wrap: normal !important;
+    padding-left: 20px !important;
+    padding-right: 15px !important;
+    position: relative !important;
+    left: 0 !important;
+    margin-left: 0 !important;
+    transform: none !important;
+    display: table-cell !important;
+}
+
+/* Ensure table is responsive */
+#table-kpi {
+    width: 100% !important;
+    table-layout: auto !important;
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+}
+
+#table-kpi td {
+    white-space: nowrap;
+    overflow: visible;
+    padding: 8px 15px !important;
+}
+
+#table-kpi th {
+    padding: 8px 15px !important;
+}
+
+/* Make sure table container allows horizontal scroll if needed */
+.panel-table-full {
+    overflow-x: visible !important;
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+    position: relative !important;
+}
+
+/* Ensure the table wrapper doesn't cut off content - only one scrollbar */
+.dataTables_wrapper {
+    overflow-x: auto !important;
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+    position: relative !important;
+}
+
+.dataTables_wrapper .table-responsive {
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+    overflow-x: visible !important;
+}
+
+.dataTables_scrollHead,
+.dataTables_scrollBody {
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+}
+
+/* Fix panel-body to ensure first column is visible */
+.panel_s .panel-body {
+    padding: 15px !important;
+}
+
+/* Ensure first column is never hidden or cut off */
+#table-kpi tbody tr td:first-child {
+    visibility: visible !important;
+    opacity: 1 !important;
+    clip: auto !important;
+    clip-path: none !important;
+}
