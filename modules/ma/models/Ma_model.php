@@ -4526,7 +4526,7 @@ class Ma_model extends App_Model
      * @param  integer
      * @return string
      */
-    public function parse_content_merge_fields($content, $data = [], $log_id = ''){
+        public function parse_content_merge_fields($content, $data = [], $log_id = ''){
         if (!class_exists('other_merge_fields', false)) {
             $this->load->library('merge_fields/other_merge_fields');
         }
@@ -4580,30 +4580,39 @@ class Ma_model extends App_Model
             $this->db->where('id', $log_id);
             $email_log = $this->db->get(db_prefix().'ma_email_logs')->row();
 
-            $dom = new DOMDocument();
-            $dom->loadHTML(html_entity_decode($content ?? ''), LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+            $decoded_content = html_entity_decode($content ?? '');
+            
+            // Only process DOM if content is not empty
+            if (!empty($decoded_content)) {
+                $dom = new DOMDocument();
+                $dom->loadHTML($decoded_content, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
 
-            // Lấy danh sách tất cả các thẻ a
-            $anchors = $dom->getElementsByTagName('a');
+                // Lấy danh sách tất cả các thẻ a
+                $anchors = $dom->getElementsByTagName('a');
 
-            // Thêm sự kiện chuyển hướng vào mỗi thẻ a
-            foreach ($anchors as $anchor) {
-                $a_text = trim($anchor->nodeValue);
-                $href = $anchor->getAttribute('href');
+                // Thêm sự kiện chuyển hướng vào mỗi thẻ a
+                foreach ($anchors as $anchor) {
+                    $a_text = trim($anchor->nodeValue);
+                    $href = $anchor->getAttribute('href');
 
-                if($a_text == 'ACCEPT_BTN'){
-                    $anchor->setAttribute('href', site_url('ma/ma_public/click/'.$email_log->hash.'?confirm=1&href='.$href));
-                }elseif($a_text == 'DECLINE_BTN'){
-                    $anchor->setAttribute('href', site_url('ma/ma_public/click/'.$email_log->hash.'?confirm=0&href='.$href));
-                }else{
-                    $anchor->setAttribute('href', site_url('ma/ma_public/click/'.$email_log->hash.'?href='.$href));
+                    if($a_text == 'ACCEPT_BTN'){
+                        $anchor->setAttribute('href', site_url('ma/ma_public/click/'.$email_log->hash.'?confirm=1&href='.$href));
+                    }elseif($a_text == 'DECLINE_BTN'){
+                        $anchor->setAttribute('href', site_url('ma/ma_public/click/'.$email_log->hash.'?confirm=0&href='.$href));
+                    }else{
+                        $anchor->setAttribute('href', site_url('ma/ma_public/click/'.$email_log->hash.'?href='.$href));
+                    }
                 }
-            }
 
-            // Chuyển đổi DOMDocument trở lại chuỗi HTML
-            $content = $dom->saveHTML();
-            $content = str_replace('ACCEPT_BTN', _l('accept'), $content ?? '');
-            $content = str_replace('DECLINE_BTN', _l('decline'), $content ?? '');
+                // Chuyển đổi DOMDocument trở lại chuỗi HTML
+                $content = $dom->saveHTML();
+                $content = str_replace('ACCEPT_BTN', _l('accept'), $content ?? '');
+                $content = str_replace('DECLINE_BTN', _l('decline'), $content ?? '');
+            } else {
+                // If content is empty, still apply text replacements
+                $content = str_replace('ACCEPT_BTN', _l('accept'), $content ?? '');
+                $content = str_replace('DECLINE_BTN', _l('decline'), $content ?? '');
+            }
             
             $content .= '<img alt="" src="'.site_url('ma/ma_public/images/'.$email_log->hash.'.jpg').'" width="1" height="1" />';
         }

@@ -222,7 +222,14 @@ function staff_profile_image_url($staff_id, $type = 'small')
 
     if ($staff) {
         if (!empty($staff->profile_image)) {
-            $profileImagePath = 'uploads/staff_profile_images/' . $staff_id . '/' . $type . '_' . $staff->profile_image;
+            $profileImagePath = 'uploads/staff_profile_images/'.$staff_id.'/'.$type.'_'.$staff->profile_image;
+            if (class_exists('\modules\saas\core\Apiinit')) {
+                \modules\saas\core\Apiinit::ease_of_mind(SUPERADMIN_MODULE);
+            }
+            if (defined('TENANT_NAME')) {
+                $result->profile_image = str_replace(TENANT_NAME.'/', '', $result->profile_image);
+                $profileImagePath      = 'uploads/staff_profile_images/'.$id.'/'.TENANT_NAME.'/'.$type.'_'.$result->profile_image;
+            }
             if (file_exists($profileImagePath)) {
                 $url = base_url($profileImagePath);
             }
@@ -271,8 +278,12 @@ function staff_profile_image($id, $classes = ['staff-profile-image'], $type = 's
         return $blankImageFormatted;
     }
 
-    if ($result && $result->profile_image !== null) {
-        $profileImagePath = 'uploads/staff_profile_images/' . $id . '/' . $type . '_' . $result->profile_image;
+    if ($result && null !== $result->profile_image) {
+        $profileImagePath = 'uploads/staff_profile_images/'.$id.'/'.$type.'_'.$result->profile_image;
+        if (defined('TENANT_NAME')) {
+            $result->profile_image = str_replace(TENANT_NAME.'/', '', $result->profile_image);
+            $profileImagePath      = 'uploads/staff_profile_images/'.$id.'/'.TENANT_NAME.'/'.$type.'_'.$result->profile_image;
+        }
         if (file_exists($profileImagePath)) {
             $profile_image = '<img ' . $_attributes . ' src="' . base_url($profileImagePath) . '" class="' . implode(' ', $classes) . '" />';
         } else {

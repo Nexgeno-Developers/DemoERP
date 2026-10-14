@@ -1,0 +1,496 @@
+/* =================================================================== */
+/* TABLE HEADER STYLES */
+/* =================================================================== */
+
+/* Increase header height + clean spacing */
+table.dataTable thead th {
+  white-space: nowrap !important;
+  vertical-align: middle !important;
+  font-weight: 400 !important;
+  font-size: 14px !important;
+  padding: 12px 35px 12px 12px !important;
+  color: #333 !important;
+  position: relative;
+  height: 40px !important;
+}
+
+/* Inline alignment of title + arrow */
+table.dataTable thead th > span,
+table.dataTable thead th > div,
+table.dataTable thead th a {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+/* Sorting arrow alignment */
+table.dataTable thead th.sorting:after,
+table.dataTable thead th.sorting_asc:after,
+table.dataTable thead th.sorting_desc:after {
+  position: absolute;
+  right: 12px !important;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0 !important;
+  transition: opacity 0.2s ease;
+}
+
+/* Show arrow ONLY on hover */
+table.dataTable thead th:hover:after {
+  opacity: 1 !important;
+}
+
+/* Make row height slightly larger too */
+table.dataTable tbody td {
+  padding: 10px 12px !important;
+}
+
+/* =================================================================== */
+/* PERIOD DROPDOWN STYLING */
+/* =================================================================== */
+
+.bootstrap-select .dropdown-menu {
+  max-height: 350px;
+  overflow-y: auto;
+}
+
+.bootstrap-select .dropdown-menu li a {
+  padding: 10px 15px;
+  white-space: normal;
+  line-height: 1.5;
+}
+
+.bootstrap-select .dropdown-menu li a strong {
+  display: block;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 2px;
+}
+
+.bootstrap-select .dropdown-menu li a small {
+  display: block;
+  color: #666;
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+/* Clean minimal scrollbar */
+.bootstrap-select .dropdown-menu::-webkit-scrollbar {
+  width: 8px;
+}
+
+.bootstrap-select .dropdown-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.bootstrap-select .dropdown-menu::-webkit-scrollbar-thumb {
+  background: #d0d0d0;
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.bootstrap-select .dropdown-menu::-webkit-scrollbar-thumb:hover {
+  background: #a0a0a0;
+  background-clip: padding-box;
+}
+
+/* =================================================================== */
+/* FILTER TEMPLATES DROPDOWN */
+/* =================================================================== */
+
+/* Dropdown Container */
+.filter-templates-dropdown {
+  position: absolute;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 320px;
+  max-width: 450px;
+  max-height: 400px;
+  overflow-y: auto;
+  z-index: 9999;
+  display: none;
+  animation: dropdownFadeIn 0.2s ease;
+}
+
+/* Scrollbar Styling */
+.filter-templates-dropdown::-webkit-scrollbar {
+  width: 8px;
+}
+
+.filter-templates-dropdown::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.filter-templates-dropdown::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 10px;
+}
+
+.filter-templates-dropdown::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
+
+/* Empty State */
+.empty-state {
+  padding: 40px 20px;
+  text-align: center;
+  color: #999;
+}
+
+.empty-state i {
+  font-size: 48px;
+  margin-bottom: 15px;
+  opacity: 0.3;
+  display: block;
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 14px;
+  color: #999;
+}
+
+/* Filter List */
+.filter-list {
+  padding: 8px;
+}
+
+/* Filter Item */
+.filter-item {
+  padding: 14px 16px;
+  border-radius: 6px;
+  margin-bottom: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+  background: white;
+}
+
+.filter-item:hover {
+  background: #f8f9fa;
+  border-color: #e9ecef;
+}
+
+.filter-item:active {
+  background: #e9ecef;
+  transform: scale(0.98);
+}
+
+/* Filter Name */
+.filter-name {
+  flex: 1;
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+  padding-right: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Filter Actions */
+.filter-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* Default Badge */
+.default-badge {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+  font-size: 10px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);
+}
+
+/* Delete Button */
+.delete-btn {
+  background: none;
+  border: none;
+  color: #dc3545;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  opacity: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Show delete button on hover */
+.filter-item:hover .delete-btn {
+  opacity: 1;
+}
+/* Or always show it */
+.delete-btn {
+  opacity: 0.5; /* Changed from 0 */
+}
+
+.filter-item:hover .delete-btn {
+  opacity: 1;
+}
+
+.delete-btn:hover {
+  background: #dc3545;
+  color: white;
+  transform: scale(1.1);
+}
+
+.delete-btn:active {
+  transform: scale(0.95);
+}
+
+/* Animation for dropdown */
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =================================================================== */
+/* FILTER TEMPLATES MODAL STYLES */
+/* =================================================================== */
+
+#filterTemplatesModal .modal-dialog {
+  width: 800px;
+  max-width: 90%;
+}
+
+#filterTemplatesModal .table {
+  margin-bottom: 0;
+}
+
+#filterTemplatesModal .table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  border-bottom: 2px solid #dee2e6;
+}
+
+#filterTemplatesModal .table td {
+  vertical-align: middle;
+}
+
+#filterTemplatesModal .label {
+  font-size: 11px;
+  padding: 3px 8px;
+}
+
+/* Template Action Buttons */
+.load-template-btn {
+  margin-right: 5px;
+}
+
+.delete-template-btn {
+  margin-left: 5px;
+}
+
+/* Empty State */
+#filterTemplatesModal .alert-info {
+  margin: 20px 0;
+  padding: 20px;
+  text-align: center;
+}
+
+#filterTemplatesModal .alert-info i {
+  font-size: 24px;
+  display: block;
+  margin-bottom: 10px;
+}
+
+/* Modal Header Icon */
+#filterTemplatesModal .modal-title i {
+  color: #5bc0de;
+  margin-right: 8px;
+}
+
+/* Hover Effect on Table Rows */
+#filterTemplatesModal .table-hover tbody tr:hover {
+  background-color: #f5f5f5;
+}
+
+/* =================================================================== */
+/* DELETE CONFIRMATION MODAL */
+/* =================================================================== */
+
+#deleteTemplateModal .modal-dialog {
+  width: 400px;
+}
+
+#deleteTemplateModal .modal-header {
+  background: #f8f9fa;
+  border-bottom: 2px solid #e9ecef;
+}
+
+#deleteTemplateModal .modal-title {
+  font-size: 18px;
+}
+
+#deleteTemplateModal .modal-title i {
+  margin-right: 8px;
+}
+
+#deleteTemplateModal .modal-body {
+  padding: 25px;
+}
+
+#deleteTemplateModal .modal-body p:first-child {
+  margin-bottom: 15px;
+  color: #666;
+}
+
+#deleteTemplateModal .modal-body p strong {
+  color: #333;
+  font-size: 15px;
+}
+
+#deleteTemplateModal .modal-footer {
+  background: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+}
+
+/* =================================================================== */
+/* CHECKBOX STYLES */
+/* =================================================================== */
+
+.checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Square Checkbox (Set as Default) */
+.custom-checkbox-square {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #ddd;
+  background-color: white;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+  margin: 0;
+  border-radius: 4px;
+}
+
+.custom-checkbox-square:checked {
+  background-color: #4caf50;
+  border-color: #4caf50;
+}
+
+.custom-checkbox-square:checked::after {
+  content: "✓";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.custom-checkbox-square:hover {
+  border-color: #4caf50;
+}
+
+/* Round Checkbox (Save as Filter Template) */
+.custom-checkbox-round {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #ddd;
+  background-color: white;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+  margin: 0;
+  border-radius: 50%;
+}
+
+.custom-checkbox-round:checked {
+  background-color: #5bc0de;
+  border-color: #5bc0de;
+}
+
+.custom-checkbox-round:checked::after {
+  content: "✓";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.custom-checkbox-round:hover {
+  border-color: #5bc0de;
+}
+
+/* Checkbox Label */
+.checkbox-label {
+  margin: 0;
+  cursor: pointer;
+  font-weight: 500;
+  color: #333;
+  user-select: none;
+  font-size: 14px;
+}
+
+/* =================================================================== */
+/* FILTER TEMPLATES BUTTON */
+/* =================================================================== */
+
+#filter-templates-btn {
+  min-width: 40px;
+  height: 40px;
+  transition: all 0.2s ease;
+}
+
+#filter-templates-btn:hover {
+  background: #e9ecef;
+  border-color: #adb5bd;
+  transform: scale(1.05);
+}
+
+#filter-templates-btn i {
+  font-size: 16px;
+}
+
+/* =================================================================== */
+/* INPUT STYLES */
+/* =================================================================== */
+
+/* Input focus style */
+#filter-template-name:focus {
+  border-color: #66afe9;
+  outline: 0;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Disabled text box */
+#filter-template-name:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+}

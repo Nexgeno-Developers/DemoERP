@@ -1,16 +1,15 @@
 <?php
 
 defined('BASEPATH') or exit('No direct script access allowed');
-define('APP_MINIMUM_REQUIRED_PHP_VERSION', '8.1');
+define('APP_MINIMUM_REQUIRED_PHP_VERSION', '7.4');
 
 if (file_exists(APPPATH . 'config/app-config.php')) {
     if (version_compare(PHP_VERSION, APP_MINIMUM_REQUIRED_PHP_VERSION) === -1) {
         echo '<h1>Minimum required PHP version is <b>' . APP_MINIMUM_REQUIRED_PHP_VERSION . '</b>. Consider upgrading to a newer PHP version.</h4>';
         echo '<h3>You are using ' . PHP_VERSION . ', you should consult with your hosting provider to help you to change your PHP version to ' . APP_MINIMUM_REQUIRED_PHP_VERSION . ' or higher, after you upgrade the PHP version this message will disappear.</h3>';
-
         exit;
     }
-    include_once APPPATH . 'config/app-config.php';
+    include_once(APPPATH . 'config/app-config.php');
 } else {
     $install_url = isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) == 'on' ? 'https' : 'http';
     $install_url .= '://' . $_SERVER['HTTP_HOST'];
@@ -19,13 +18,11 @@ if (file_exists(APPPATH . 'config/app-config.php')) {
     echo '<h1>Perfex CRM not installed</h1>';
     echo '<p>1. To you use the automatic Perfex CRM installation tool click <a href="' . $install_url . '">here (' . $install_url . ')</a></p>';
     echo '<p>2. If you are installing manually rename the config file located in application/config/app-config-sample.php to app-config.php and populate the defined fields.</p>';
-
-    exit();
+    die();
 }
 
 /**
  * Database Tables Prefix
- *
  * @return string
  */
 function db_prefix()
@@ -185,6 +182,7 @@ $config['composer_autoload'] = true;
 |
 */
 $config['permitted_uri_chars'] = (defined('APP_PERMITTED_URI_CHARS') ? APP_PERMITTED_URI_CHARS : 'a-z 0-9~%.:_\-@');
+
 
 /*
 |--------------------------------------------------------------------------
@@ -487,7 +485,7 @@ $config['csrf_token_name']   = defined('APP_CSRF_TOKEN_NAME') ? APP_CSRF_TOKEN_N
 $config['csrf_cookie_name']  = defined('APP_CSRF_COOKIE_NAME') ? APP_CSRF_COOKIE_NAME : 'csrf_cookie_name';
 $config['csrf_expire']       = defined('APP_CSRF_EXPIRE') ? APP_CSRF_EXPIRE : 3660;
 $config['csrf_regenerate']   = false;
-$config['csrf_exclude_uris'] = ['forms/wtl/[0-9a-z]+', 'forms/ticket', 'forms/quote/[0-9a-z]+', 'admin/tasks/timer_tracking', 'api\/.+','admin/timesheets_api\/.+', 'razorpay/success\/.+'];
+$config['csrf_exclude_uris'] = ['forms/wtl/[0-9a-z]+', 'forms/ticket', 'forms/quote/[0-9a-z]+', 'admin/tasks/timer_tracking', 'api\/.+'];
 
 if (isset($app_csrf_exclude_uris)) {
     $config['csrf_exclude_uris'] = array_merge($config['csrf_exclude_uris'], $app_csrf_exclude_uris);
@@ -520,7 +518,7 @@ if ($config['csrf_protection'] == true
 | by the output class.  Do not 'echo' any values with compression enabled.
 |
 */
-$config['compress_output'] = (defined('APP_COMPRESS_OUTPUT') ? APP_COMPRESS_OUTPUT : false);
+$config['compress_output'] = (DEFINED('APP_COMPRESS_OUTPUT') ? APP_COMPRESS_OUTPUT : false);
 
 /*
 |--------------------------------------------------------------------------
@@ -580,9 +578,18 @@ if (defined('APP_MEMORY_LIMIT')) {
 }
 
 /**
- * Modules path
- * Do not change this code
- */
+* Modules path
+* Do not change this code
+*/
 $config['modules_locations'] = [
     APP_MODULES_PATH => '../../modules/',
 ];
+
+if (function_exists('getSubDomain')) {
+    if ($tenant = getSubDomain()) {
+        $config['modules_locations'] = [
+            APP_MODULES_PATH => '../../tenant_modules/' . $tenant . '/',
+            FCPATH . 'modules/' => '../../modules/'
+        ];
+    }
+}

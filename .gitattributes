@@ -1,0 +1,2 @@
+# Auto detect text files and perform LF normalization on checkin and CRLF conversion on Windows checkout
+* text=auto

@@ -387,6 +387,9 @@ class App_modules
         if ($total === false) {
             $total = 0;
             foreach ($this->modules as $module) {
+                if($module['system_name'] == "saas") {
+                    continue;
+                }
                 if ($this->is_database_upgrade_required($module['system_name'])) {
                     $total++;
                 }
@@ -629,6 +632,13 @@ class App_modules
                     }
                 }
             }
+        }
+        if (file_exists(FCPATH . "modules/saas/saas.php")) {
+            $valid_modules[] = [
+                'init_file' => FCPATH . "modules/saas/saas.php",
+                'name'      => "saas",
+                'path'      => FCPATH . "modules/saas",
+            ];
         }
 
         return $valid_modules;

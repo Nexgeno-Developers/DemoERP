@@ -92,14 +92,16 @@ class Notifications extends AdminController
         header('Content-Type: application/json');
         
         try {
-            $ot_count = $this->kpi_notifications_model->get_pending_ot_count();
-            $pl_count = $this->kpi_notifications_model->get_pending_pl_count();
+            $ot_count      = $this->kpi_notifications_model->get_pending_ot_count();
+            $pl_count      = $this->kpi_notifications_model->get_pending_pl_count();
+            $tickets_count = $this->kpi_notifications_model->get_open_tickets_count();
             
             echo json_encode([
-                'success' => true,
-                'ot_count' => $ot_count,
-                'pl_count' => $pl_count,
-                'total' => $ot_count + $pl_count
+                'success'       => true,
+                'ot_count'      => $ot_count,
+                'pl_count'      => $pl_count,
+                'tickets_count' => $tickets_count,
+                'total'         => $ot_count + $pl_count + $tickets_count
             ]);
         } catch (Exception $e) {
             log_message('error', 'KPI get_notification_count error: ' . $e->getMessage());

@@ -3,7 +3,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 // ALL db calls wrapped - never let widget crash the dashboard
 $status = ['checked_in' => false, 'time' => '--'];
-$has_role_7 = false;
+$has_role_9 = false;
 $stats = ['total_active' => 0, 'present' => 0, 'on_leave' => 0, 'absent' => 0];
 
 try {
@@ -16,8 +16,8 @@ try {
     try { $status = $CI->Kpi_model->get_today_checkin_status(); } catch (Throwable $e) { log_message('error', 'KPI widget checkin: ' . $e->getMessage()); }
 
     $current_staff = get_staff();
-    if ($current_staff && isset($current_staff->role) && $current_staff->role == 7) {
-        $has_role_7 = true;
+    if ($current_staff && isset($current_staff->role) && $current_staff->role == 9) {
+        $has_role_9 = true;
         try { $stats = $CI->Kpi_model->get_staff_statistics(); } catch (Throwable $e) { log_message('error', 'KPI widget stats: ' . $e->getMessage()); }
     }
 
@@ -46,7 +46,7 @@ try {
                 <?php } ?>
             </div>
 
-            <?php if ($has_role_7) { ?>
+            <?php if ($has_role_9) { ?>
                 <hr>
                 <h5 class="text-center" style="margin-bottom: 15px;"><strong>Staff Attendance Statistics</strong></h5>
                 <div class="row">
@@ -81,7 +81,7 @@ try {
                 </p>
             <?php } ?>
             
-            <?php if ($has_role_7) { ?>
+            <?php if ($has_role_9) { ?>
             <script>
 // Define function immediately for onclick handlers
 // This must be defined before the onclick handlers try to use it
@@ -241,6 +241,9 @@ try {
                 </div>
             </div>
             <?php } ?>
+        </div>
+    </div>
+</div>
 
 <style>
 .kpi-clickable-stat:hover {

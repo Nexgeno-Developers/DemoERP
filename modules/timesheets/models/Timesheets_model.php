@@ -2555,29 +2555,19 @@ class timesheets_model extends app_model
 	/**
 	 * Get staff working type from custom field
 	 * @param  integer $staff_id
-	 * @return string Returns WFO, WFH, Hybrid (defaults to WFO if not assigned)
+	 * @return string|false Returns WFO, WFH, Hybrid or false if not found
 	 */
 	public function get_staff_working_type($staff_id)
 	{
 		// Get working_type from custom field (field ID 15)
-		$working_type = get_custom_field_value($staff_id, 15, 'staff', false);
-		
-		// Handle null, false, or empty values - convert to empty string
-		if ($working_type === null || $working_type === false) {
-			$working_type = '';
-		}
-		
-		// Trim whitespace and convert to uppercase for validation
-		$working_type = trim((string)$working_type);
-		$working_type_upper = strtoupper($working_type);
+		$working_type = get_custom_field_value($staff_id, 13, 'staff', false);
 		
 		// Validate and return only valid values
-		if (!empty($working_type) && in_array($working_type_upper, ['WFO', 'WFH', 'HYBRID'])) {
-			return $working_type_upper;
+		if ($working_type && in_array(strtoupper($working_type), ['WFO', 'WFH', 'HYBRID'])) {
+			return strtoupper($working_type);
 		}
 		
-		// Fallback: If no working type is assigned or invalid, default to WFO (Work From Office)
-		return 'WFO';
+		return false;
 	}
 
 	/**
@@ -2647,12 +2637,13 @@ class timesheets_model extends app_model
 		// Get staff ID
 		$staff_id = isset($data['staff_id']) ? $data['staff_id'] : get_staff_user_id();
 		
-		// Get staff working type from custom field (defaults to WFO if not assigned)
+		// Get staff working type from custom field
 		$working_type = $this->get_staff_working_type($staff_id);
 		
-		// Ensure working_type is always a valid value (safety check)
-		if (!in_array($working_type, ['WFO', 'WFH', 'HYBRID'])) {
-			$working_type = 'WFO';
+		// Validate working type exists and is valid
+		if ($working_type === false) {
+			// Error 7: Working type is missing or invalid
+			return 7;
 		}
 		
 		// Get client IP address (needed for WFO and Hybrid)

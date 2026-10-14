@@ -25,10 +25,10 @@ class Cron_model extends App_Model
     {
         if (!defined('APP_DISABLE_CRON_LOCK') || defined('APP_DISABLE_CRON_LOCK') && !APP_DISABLE_CRON_LOCK) {
             register_shutdown_function([$this, '__destruct']);
-            $f = fopen(get_temp_dir() . 'pcrm-cron-lock', 'w+');
+            $f = fopen(FCPATH . 'application/cache/pcrm-cron-lock', 'w+');
 
             if (!$f) {
-                $this->lock_handle = fopen(TEMP_FOLDER . 'pcrm-cron-lock', 'w+');
+                $this->lock_handle = fopen(FCPATH . 'application/cache/pcrm-cron-lock', 'w+');
                 // Again? Disable the lock
                 if (!$this->lock_handle && !defined('APP_DISABLE_CRON_LOCK')) {
                     // Defined this constant manually here so the cron is able to run
@@ -655,9 +655,9 @@ class Cron_model extends App_Model
                         'addedfrom'                => $expense['addedfrom'],
                         'created_invoice_id'       => $created_invoice_id,
                     ];
+                    hooks()->do_action('after_recurring_expense_created', ['original_expense' => $expense, 'new_expense_id' => $insert_id]);
                 }
             }
-            hooks()->do_action('after_recurring_expense_created', ['original_expense' => $expense, 'new_expense_id' => $insert_id]);
         }
 
         $send_recurring_expenses_email = hooks()->apply_filters('send_recurring_system_expenses_email', 'true');

@@ -196,7 +196,38 @@ define('CREDIT_NOTES_ATTACHMENTS_FOLDER', FCPATH . 'uploads/credit_notes' . '/')
 /**
  * Modules Path
  */
-define('APP_MODULES_PATH', FCPATH . 'modules/');
+if (!function_exists("getSubDomain")) {
+    function getSubDomain()
+    {
+        $array = explode("\n", file_get_contents(APPPATH . "config/app-config.php"));
+        $base_url_line = array_filter($array, function($line){
+            return str_contains($line, "APP_BASE_URL");
+        });
+        reset($base_url_line);
+        $pattern = "/'(https?:\/\/[^']+)'/";
+        preg_match($pattern, reset($base_url_line), $matches);
+        $base_url = $matches[1];
+
+        $base_url = preg_replace("~^https?://~i", '', $base_url);
+        $base_url = preg_replace("/^www\./i", '', $base_url);
+        $base_url = rtrim($base_url, '/');
+
+        $scheme          = $_SERVER['REQUEST_SCHEME'] ?? $_SERVER['HTTP_X_FORWARDED_PROTO'] ?? (('on' == strtolower($_SERVER['HTTPS'])) ? 'https' : 'http');
+        $url             = $scheme."://{$_SERVER['HTTP_HOST']}".str_replace(basename($_SERVER['SCRIPT_NAME']), '', $_SERVER['SCRIPT_NAME']);
+
+        $url = preg_replace("~^https?://~i", '', $url);
+        $url = preg_replace("/^www\./i", '', $url);
+        $url = rtrim($url, '/');
+
+        $subDomain = rtrim(str_replace($base_url, "", $url), ".");
+        return !empty($subDomain) ? $subDomain : false;
+    }
+}
+if($tenant = getSubDomain()){
+    define('APP_MODULES_PATH', FCPATH . 'tenant_modules/'.$tenant.'/');
+} else {
+    define('APP_MODULES_PATH', FCPATH . 'modules/');
+}
 /**
  * Helper libraries path
  */

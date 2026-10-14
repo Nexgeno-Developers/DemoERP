@@ -57,6 +57,12 @@ function xcopy($source, $dest, $permissions = 0755)
  */
 function delete_dir($dirPath)
 {
+    if (defined('TENANT_NAME')) {
+        $dirPath .= '/'.TENANT_NAME.'/';
+        if (!is_dir($dirPath)) {
+            return false;
+        }
+    }
     if (!is_dir($dirPath)) {
         throw new InvalidArgumentException("$dirPath must be a directory");
     }

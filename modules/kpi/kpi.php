@@ -164,22 +164,28 @@ function kpi_add_notification_icon()
 
         $pending_ot_count    = 0;
         $pending_pl_count    = 0;
+        $open_tickets_count  = 0;
         $pending_ot_requests = [];
         $pending_pl_requests = [];
+        $open_tickets        = [];
 
-        try { $pending_ot_count    = (int)$CI->kpi_notifications_model->get_pending_ot_count();     } catch (Throwable $e) { log_message('error','KPI OT count: '.$e->getMessage()); }
-        try { $pending_pl_count    = (int)$CI->kpi_notifications_model->get_pending_pl_count();     } catch (Throwable $e) { log_message('error','KPI PL count: '.$e->getMessage()); }
-        try { $pending_ot_requests = $CI->kpi_notifications_model->get_pending_ot_requests(5) ?: []; } catch (Throwable $e) { log_message('error','KPI OT list: '.$e->getMessage()); }
-        try { $pending_pl_requests = $CI->kpi_notifications_model->get_pending_pl_requests(5) ?: []; } catch (Throwable $e) { log_message('error','KPI PL list: '.$e->getMessage()); }
+        try { $pending_ot_count    = (int)$CI->kpi_notifications_model->get_pending_ot_count();        } catch (Throwable $e) { log_message('error','KPI OT count: '.$e->getMessage()); }
+        try { $pending_pl_count    = (int)$CI->kpi_notifications_model->get_pending_pl_count();        } catch (Throwable $e) { log_message('error','KPI PL count: '.$e->getMessage()); }
+        try { $open_tickets_count  = (int)$CI->kpi_notifications_model->get_open_tickets_count();     } catch (Throwable $e) { log_message('error','KPI Tickets count: '.$e->getMessage()); }
+        try { $pending_ot_requests = $CI->kpi_notifications_model->get_pending_ot_requests(5) ?: [];  } catch (Throwable $e) { log_message('error','KPI OT list: '.$e->getMessage()); }
+        try { $pending_pl_requests = $CI->kpi_notifications_model->get_pending_pl_requests(5) ?: [];  } catch (Throwable $e) { log_message('error','KPI PL list: '.$e->getMessage()); }
+        try { $open_tickets        = $CI->kpi_notifications_model->get_open_tickets_for_staff(5) ?: []; } catch (Throwable $e) { log_message('error','KPI Tickets list: '.$e->getMessage()); }
 
         $CI->db->db_debug = $old_debug;
 
         $data = [
             'pending_ot_count'       => $pending_ot_count,
             'pending_pl_count'       => $pending_pl_count,
-            'total_pending_requests' => $pending_ot_count + $pending_pl_count,
+            'open_tickets_count'     => $open_tickets_count,
+            'total_pending_requests' => $pending_ot_count + $pending_pl_count + $open_tickets_count,
             'pending_ot_requests'    => $pending_ot_requests,
             'pending_pl_requests'    => $pending_pl_requests,
+            'open_tickets'           => $open_tickets,
         ];
 
         ob_start();

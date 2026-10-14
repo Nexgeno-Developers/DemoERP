@@ -28,3 +28,10 @@ error_log
 /application/cache/*
 
 /install123/
+
+# Ignore local backups
+*.backup
+
+# Ignore media uploads except index.html
+/media/*
+!/media/index.html

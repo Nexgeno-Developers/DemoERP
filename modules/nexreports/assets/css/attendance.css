@@ -1,0 +1,309 @@
+/* Period Filter Dropdown Styles */
+#period {
+  font-size: 14px;
+}
+
+/* Style for period options with date ranges */
+.bootstrap-select .dropdown-menu li.period-with-date a {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 20px;
+}
+
+.bootstrap-select .dropdown-menu li.period-with-date .period-label {
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 2px;
+}
+
+.bootstrap-select .dropdown-menu li.period-with-date .period-date-range {
+  font-size: 11px;
+  color: #84919a;
+  font-weight: normal;
+}
+
+/* Enhanced dropdown styling */
+.bootstrap-select .dropdown-menu li a {
+  transition: background-color 0.2s ease;
+}
+
+.bootstrap-select .dropdown-menu li.active a,
+.bootstrap-select .dropdown-menu li.selected a {
+  background-color: #f0f4f7;
+  color: #333;
+}
+
+.bootstrap-select .dropdown-menu li:hover a {
+  background-color: #f8f9fa;
+}
+
+/* Ensure proper spacing in dropdown */
+.bootstrap-select .dropdown-menu li {
+  position: relative;
+}
+
+/* Selected item styling */
+.bootstrap-select .dropdown-toggle .filter-option-inner-inner {
+  font-weight: 500;
+}
+
+/* Add subtle border between date range options */
+.bootstrap-select .dropdown-menu li.period-with-date {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.bootstrap-select .dropdown-menu li.period-with-date:last-child {
+  border-bottom: none;
+}
+
+/* ✅ Filter Restriction Overlay - Prohibition Sign */
+.filter-wrapper {
+  position: relative;
+}
+
+.filter-restriction-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.85);
+  cursor: not-allowed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.filter-restriction-overlay:hover {
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.filter-restriction-overlay i.fa-ban {
+  font-size: 32px;
+  color: #dc3545;
+  opacity: 0.8;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+/* Disabled selectpicker styling */
+.bootstrap-select.disabled,
+.bootstrap-select.disabled .dropdown-toggle {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Table Styling - Use class selector to match Perfex CRM standard */
+.table-attendance-reports thead th {
+  white-space: nowrap;
+}
+
+.table-attendance-reports tbody td {
+  vertical-align: middle;
+}
+
+/* Staff Status Badge Styling */
+.table-attendance-reports .label {
+  font-size: 12px;
+  padding: 5px 10px;
+  font-weight: 500;
+  border-radius: 3px;
+}
+
+.table-attendance-reports .label-success {
+  background-color: #ffffff;
+}
+
+.table-attendance-reports .label-default {
+  background-color: #e8eaec;
+}
+
+/* Change blue "Approved" in Leave Status to green */
+.table-attendance-reports .label-info {
+  color: #23943e !important;
+}
+
+.status-summary {
+  font-size: 12px;
+  font-weight: 500;
+  color: #6c757d;
+  margin-left: 4px;
+}
+
+/* Ensure reload button matches Export button styling */
+.table-attendance-reports .btn-dt-reload {
+  background-color: #fff !important;
+  border-color: #ddd !important;
+  color: #333 !important;
+}
+
+.table-attendance-reports .btn-dt-reload:hover,
+.table-attendance-reports .btn-dt-reload:focus {
+  background-color: #e6e6e6 !important;
+  border-color: #adadad !important;
+  color: #333 !important;
+}
+
+.table-attendance-reports .btn-dt-reload:active {
+  background-color: #d4d4d4 !important;
+  border-color: #ffffff !important;
+  color: #333 !important;
+}
+
+/* Modal table links - native Perfex CRM black styling */
+.table-leave-details tbody a,
+.table-ot-details tbody a {
+  color: #333 !important;
+  text-decoration: none;
+}
+
+.table-leave-details tbody a:hover,
+.table-leave-details tbody a:focus,
+.table-ot-details tbody a:hover,
+.table-ot-details tbody a:focus {
+  color: #333 !important;
+  text-decoration: underline;
+}
+
+/* ✅ Modal Improvements for Large Data */
+.modal-lg {
+  width: 90%;
+  max-width: 1200px;
+}
+
+/* Scrollable modal tables */
+.table-ot-details,
+.table-leave-details {
+  margin-bottom: 0;
+}
+
+.table-ot-details thead th,
+.table-leave-details thead th {
+  border-bottom: 2px solid #ddd;
+  background-color: #f8f9fa;
+  font-weight: 600;
+}
+
+/* Sticky header for scrollable tables */
+.table-responsive[style*="max-height"] thead th {
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 10;
+  box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Summary alert styling */
+.modal-body .alert-info {
+  border-left: 4px solid #17a2b8;
+  background-color: #f0f9ff;
+  border-color: #bee5eb;
+}
+
+/* Status label improvements - Rectangle with rounded edges */
+.table-ot-details .label,
+.table-leave-details .label {
+  font-size: 11px;
+  padding: 6px 12px; /* Good padding for rectangle shape */
+  font-weight: 500;
+  border-radius: 8px !important; /* ✅ Rounded corners, not full capsule */
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background-color: #ffffff !important; /* Always white background */
+  border: 1.5px solid #ddd; /* Slightly thicker border */
+  display: inline-block;
+  text-align: center;
+  transition: all 0.2s ease; /* Smooth hover transition */
+}
+
+/* Hover effects for rounded rectangle labels */
+.table-ot-details .label:hover,
+.table-leave-details .label:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Status text colors only - Rectangle with rounded corners */
+.table-ot-details .label-danger,
+.table-leave-details .label-danger {
+  color: #dc3545 !important; /* Red text for rejected */
+  background-color: #ffffff !important;
+  border-color: #dc3545 !important;
+  border-width: 1.5px;
+}
+
+.table-ot-details .label-danger:hover,
+.table-leave-details .label-danger:hover {
+  background-color: #fff5f5 !important; /* Light red background on hover */
+  border-color: #c82333 !important;
+}
+
+.table-ot-details .label-warning,
+.table-leave-details .label-warning {
+  color: #e67e22 !important; /* Orange text for pending */
+  background-color: #ffffff !important;
+  border-color: #e67e22 !important;
+  border-width: 1.5px;
+}
+
+.table-ot-details .label-warning:hover,
+.table-leave-details .label-warning:hover {
+  background-color: #fef9f3 !important; /* Light orange background on hover */
+  border-color: #d35400 !important;
+}
+
+.table-ot-details .label-success,
+.table-leave-details .label-success {
+  color: #28a745 !important; /* Green text for approved */
+  background-color: #ffffff !important;
+  border-color: #28a745 !important;
+  border-width: 1.5px;
+}
+
+.table-ot-details .label-success:hover,
+.table-leave-details .label-success:hover {
+  background-color: #f8fff9 !important; /* Light green background on hover */
+  border-color: #218838 !important;
+}
+
+/* Improve table row hover */
+.table-ot-details tbody tr:hover,
+.table-leave-details tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+/* Better spacing for modal content */
+.modal-body .row {
+  margin-left: -10px;
+  margin-right: -10px;
+}
+
+.modal-body .col-md-12 {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+  .modal-lg {
+    width: 95%;
+    margin: 10px auto;
+  }
+  
+  .table-responsive[style*="max-height"] {
+    max-height: 300px !important;
+  }
+}

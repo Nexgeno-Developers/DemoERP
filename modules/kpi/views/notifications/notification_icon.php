@@ -1,7 +1,7 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed'); ?>
 <li class="icon dropdown tw-relative tw-block kpi-notifications-wrapper header-kpi-notifications rtl:tw-ml-3"
     data-toggle="tooltip"
-    title="Pending OT and PL Requests"
+    title="Pending OT, PL and Tickets Requests"
     data-placement="bottom">
     
     <a href="#" class="dropdown-toggle kpi-notifications-icon !tw-px-0 tw-group" 
@@ -33,6 +33,14 @@
                         PL 
                         <?php if ($pending_pl_count > 0) { ?>
                         <span class="badge badge-danger"><?= $pending_pl_count; ?></span>
+                        <?php } ?>
+                    </a>
+                </li>
+                <li role="presentation">
+                    <a href="#kpi-tickets-tab" aria-controls="kpi-tickets-tab" role="tab" data-toggle="tab" class="tw-text-sm">
+                        Tickets
+                        <?php if ($open_tickets_count > 0) { ?>
+                        <span class="badge badge-danger"><?= $open_tickets_count; ?></span>
                         <?php } ?>
                     </a>
                 </li>
@@ -119,6 +127,53 @@
                     <div class="tw-p-4 tw-text-center tw-text-neutral-500">
                         <i class="fa fa-calendar-o tw-text-2xl tw-mb-2"></i>
                         <p class="tw-mb-0"><?= _l('No Pending PL Requests'); ?></p>
+                    </div>
+                <?php } ?>
+            </div>
+
+            <!-- Tickets Tab -->
+            <div role="tabpanel" class="tab-pane" id="kpi-tickets-tab">
+                <?php if (!empty($open_tickets)) { ?>
+                    <?php foreach ($open_tickets as $ticket) { ?>
+                    <div class="kpi-request-item tw-flex tw-items-center tw-cursor-pointer"
+                         onclick="window.open('<?= admin_url('tickets/ticket/' . $ticket['ticketid']); ?>', '_blank')"">
+                        <div class="tw-flex-shrink-0 tw-w-9 tw-h-9 tw-rounded-full tw-bg-neutral-200 tw-flex tw-items-center tw-justify-center">
+                            <i class="fa fa-ticket tw-text-neutral-500"></i>
+                        </div>
+                        <div class="kpi-request-content tw-ml-3 tw-overflow-hidden">
+                            <div class="kpi-request-title tw-truncate">
+                                <?php if (!empty($ticket['firstname'])) { ?>
+                                <?= e($ticket['firstname'] . ' ' . $ticket['lastname']); ?> —
+                                <?php } ?>
+                                #<?= e($ticket['ticketid']); ?> <?= e($ticket['subject']); ?>
+                            </div>
+                            <div class="kpi-request-meta">
+                                <?php if (!empty($ticket['statuscolor'])) { ?>
+                                <span class="kpi-request-badge" style="background:<?= e($ticket['statuscolor']); ?>;color:#fff;">
+                                    <?= e($ticket['status_name']); ?>
+                                </span>
+                                <?php } elseif (!empty($ticket['status_name'])) { ?>
+                                <span class="kpi-request-badge ot"><?= e($ticket['status_name']); ?></span>
+                                <?php } ?>
+                                <?php if (!empty($ticket['priority_name'])) { ?>
+                                <span class="tw-text-neutral-500">•</span>
+                                <span><?= e($ticket['priority_name']); ?></span>
+                                <?php } ?>
+                                <?php if (!empty($ticket['department_name'])) { ?>
+                                <span class="tw-text-neutral-500">•</span>
+                                <span><?= e($ticket['department_name']); ?></span>
+                                <?php } ?>
+                            </div>
+                        </div>
+                        <div class="tw-flex-shrink-0 tw-ml-auto">
+                            <i class="fa fa-chevron-right tw-text-neutral-400"></i>
+                        </div>
+                    </div>
+                    <?php } ?>
+                <?php } else { ?>
+                    <div class="tw-p-4 tw-text-center tw-text-neutral-500">
+                        <i class="fa fa-ticket tw-text-2xl tw-mb-2"></i>
+                        <p class="tw-mb-0"><?= _l('No Open Tickets'); ?></p>
                     </div>
                 <?php } ?>
             </div>
