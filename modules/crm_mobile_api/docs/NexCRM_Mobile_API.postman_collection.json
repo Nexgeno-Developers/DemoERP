@@ -1,0 +1,370 @@
+{
+  "info": {
+    "_postman_id": "a9b8c7d6-e5f4-4321-abcd-ef0123456789",
+    "name": "NexCRM Mobile App API (v1)",
+    "description": "Production REST API collection for Flutter Mobile App developers. Base URL is set to https://demoerp.nexgeno.cloud/api/v1",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://demoerp.nexgeno.cloud/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Staff Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.status && jsonData.data && jsonData.data.token) {",
+                  "    pm.collectionVariables.set('token', jsonData.data.token);",
+                  "    console.log('Token automatically saved to {{token}}');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"staff@example.com\",\n  \"password\": \"your_password\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/staff/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "staff", "login"]
+            },
+            "description": "Authenticates staff member and automatically stores the JWT Bearer token into the collection variable {{token}}."
+          }
+        },
+        {
+          "name": "Customer Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.status && jsonData.data && jsonData.data.token) {",
+                  "    pm.collectionVariables.set('token', jsonData.data.token);",
+                  "    console.log('Token automatically saved to {{token}}');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"customer@example.com\",\n  \"password\": \"your_password\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/customer/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "customer", "login"]
+            },
+            "description": "Authenticates customer contact and stores JWT Bearer token into {{token}}."
+          }
+        },
+        {
+          "name": "Get Current Profile (Me)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "me"]
+            },
+            "description": "Returns profile details for the currently authenticated staff or customer."
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Metadata (Dropdowns)",
+      "item": [
+        {
+          "name": "Get Ticket Dropdown Options",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tickets/meta",
+              "host": ["{{base_url}}"],
+              "path": ["tickets", "meta"]
+            },
+            "description": "Returns lists of ticket statuses, priorities, departments, and services for Flutter form dropdowns."
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Customer Tickets",
+      "item": [
+        {
+          "name": "List Customer Tickets",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/customer/tickets?page=1&limit=20&status=",
+              "host": ["{{base_url}}"],
+              "path": ["customer", "tickets"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" },
+                { "key": "status", "value": "", "description": "Optional status filter (e.g. 1=Open, 2=In Progress, 5=Closed)" },
+                { "key": "q", "value": "", "description": "Optional search term", "disabled": true }
+              ]
+            },
+            "description": "Lists tickets for the logged-in customer's company."
+          }
+        },
+        {
+          "name": "View Customer Ticket Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/customer/tickets/1",
+              "host": ["{{base_url}}"],
+              "path": ["customer", "tickets", "1"]
+            },
+            "description": "Returns single ticket details, replies, and attachments."
+          }
+        },
+        {
+          "name": "Create Support Ticket",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subject\": \"Network connectivity issue in branch\",\n  \"message\": \"The office router is blinking red and wifi is disconnected.\",\n  \"department\": 1,\n  \"priority\": 2,\n  \"service\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/customer/tickets",
+              "host": ["{{base_url}}"],
+              "path": ["customer", "tickets"]
+            },
+            "description": "Creates a new ticket in Perfex CRM under customer company."
+          }
+        },
+        {
+          "name": "Reply to Ticket (Customer)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Thanks for the update. The issue is still persisting after restart.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/customer/tickets/1/reply",
+              "host": ["{{base_url}}"],
+              "path": ["customer", "tickets", "1", "reply"]
+            },
+            "description": "Appends customer reply to ticket."
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Staff Tickets",
+      "item": [
+        {
+          "name": "List Staff Tickets",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/staff/tickets?page=1&limit=20&assigned=me&status=",
+              "host": ["{{base_url}}"],
+              "path": ["staff", "tickets"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" },
+                { "key": "assigned", "value": "me", "description": "'me' for assigned to logged-in staff, 'all' or empty for all" },
+                { "key": "status", "value": "", "description": "Status ID filter", "disabled": true },
+                { "key": "priority", "value": "", "description": "Priority ID filter", "disabled": true },
+                { "key": "q", "value": "", "description": "Search keyword", "disabled": true }
+              ]
+            },
+            "description": "Lists tickets for staff with filtering options."
+          }
+        },
+        {
+          "name": "View Staff Ticket Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/staff/tickets/1",
+              "host": ["{{base_url}}"],
+              "path": ["staff", "tickets", "1"]
+            },
+            "description": "Returns ticket info, company, contact, assigned engineer, replies, and attachments."
+          }
+        },
+        {
+          "name": "Update Ticket Status",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status_id\": 2\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/staff/tickets/1/status",
+              "host": ["{{base_url}}"],
+              "path": ["staff", "tickets", "1", "status"]
+            },
+            "description": "Changes ticket status (e.g. 1=Open, 2=In Progress, 3=Answered, 4=On Hold, 5=Closed)."
+          }
+        },
+        {
+          "name": "Reply to Ticket (Staff)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Our engineer has arrived on site and is investigating the router.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/staff/tickets/1/reply",
+              "host": ["{{base_url}}"],
+              "path": ["staff", "tickets", "1", "reply"]
+            },
+            "description": "Posts a staff reply to customer."
+          }
+        },
+        {
+          "name": "Upload Ticket Attachment / Service Report",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "description": "Image, PDF service report, or document"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/staff/tickets/1/attachments",
+              "host": ["{{base_url}}"],
+              "path": ["staff", "tickets", "1", "attachments"]
+            },
+            "description": "Uploads service reports, diagnostic photos, or attachments to ticket."
+          }
+        }
+      ]
+    }
+  ]
+}
